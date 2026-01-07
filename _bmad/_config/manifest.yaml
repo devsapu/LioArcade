@@ -1,0 +1,9 @@
+installation:
+  version: 6.0.0-alpha.22
+  installDate: 2026-01-07T09:53:18.149Z
+  lastUpdated: 2026-01-07T09:53:18.149Z
+modules:
+  - core
+  - bmm
+ides:
+  - cursor
