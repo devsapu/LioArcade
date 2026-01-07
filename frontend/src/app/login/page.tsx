@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
@@ -9,12 +9,19 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, isLoading, error, clearError, user } = useAuthStore();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [formError, setFormError] = useState('');
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,9 +35,43 @@ export default function LoginPage() {
 
     try {
       await login(formData.email, formData.password);
-      router.push('/dashboard');
-    } catch (err) {
-      // Error is handled by the store
+      
+      // Wait a moment to ensure state is updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Check if login was successful by verifying user state
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser) {
+        router.push('/dashboard');
+      } else {
+        const errorMsg = useAuthStore.getState().error || 'Login failed. User not set after login.';
+        setFormError(errorMsg);
+        console.error('Login failed - user not set:', { currentUser, error: useAuthStore.getState().error });
+      }
+    } catch (err: any) {
+      // Log full error details that persist
+      console.error('=== LOGIN ERROR DETAILS ===');
+      console.error('Error object:', err);
+      console.error('Error message:', err?.message);
+      console.error('Error response:', err?.response);
+      console.error('Error response data:', err?.response?.data);
+      console.error('Error response status:', err?.response?.status);
+      console.error('==========================');
+      
+      // Get detailed error message
+      const errorMessage = 
+        err?.response?.data?.error || 
+        err?.response?.data?.message ||
+        err?.message || 
+        'Login failed. Please check your credentials and try again.';
+      
+      // Set error in form (this will persist on screen)
+      setFormError(errorMessage);
+      
+      // Also ensure store error is set
+      if (!useAuthStore.getState().error) {
+        useAuthStore.setState({ error: errorMessage });
+      }
     }
   };
 
@@ -50,8 +91,10 @@ export default function LoginPage() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {(error || formError) && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error || formError}</p>
+            <div className="rounded-md bg-red-50 p-4 border border-red-200">
+              <p className="text-sm font-medium text-red-800">Error:</p>
+              <p className="text-sm text-red-700 mt-1">{error || formError}</p>
+              <p className="text-xs text-red-600 mt-2">Check the browser console (F12) for more details.</p>
             </div>
           )}
           
@@ -89,4 +132,6 @@ export default function LoginPage() {
     </div>
   );
 }
+
+
 

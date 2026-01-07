@@ -51,3 +51,5 @@ frontend/
 - Responsive design
 - Dark mode support (future)
 
+
+

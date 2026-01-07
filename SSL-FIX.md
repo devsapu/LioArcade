@@ -77,3 +77,5 @@ If you still get errors, verify:
 3. Username and password in DATABASE_URL are correct
 4. Port 5432 is correct (default PostgreSQL port)
 
+
+

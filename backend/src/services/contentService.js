@@ -195,3 +195,5 @@ export const getCategories = async () => {
   return categories.map((c) => c.category).filter(Boolean);
 };
 
+
+

@@ -1,27 +1,31 @@
 # LioArcade - Initial Setup Script
 # This script sets up the project for the first time
 
-Write-Host "🚀 LioArcade Setup Script" -ForegroundColor Cyan
-Write-Host "========================`n" -ForegroundColor Cyan
+$scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+Set-Location $scriptPath
+
+Write-Host "LioArcade Setup Script" -ForegroundColor Cyan
+Write-Host "======================" -ForegroundColor Cyan
+Write-Host ""
 
 # Check prerequisites
-Write-Host "📋 Checking prerequisites..." -ForegroundColor Yellow
+Write-Host "Checking prerequisites..." -ForegroundColor Yellow
 
 # Check Node.js
 try {
     $nodeVersion = node --version
-    Write-Host "✅ Node.js: $nodeVersion" -ForegroundColor Green
+    Write-Host "OK Node.js: $nodeVersion" -ForegroundColor Green
 } catch {
-    Write-Host "❌ Node.js not found. Please install Node.js 18+ from https://nodejs.org/" -ForegroundColor Red
+    Write-Host "ERROR: Node.js not found. Please install Node.js 18+ from https://nodejs.org/" -ForegroundColor Red
     exit 1
 }
 
 # Check npm
 try {
     $npmVersion = npm --version
-    Write-Host "✅ npm: $npmVersion" -ForegroundColor Green
+    Write-Host "OK npm: $npmVersion" -ForegroundColor Green
 } catch {
-    Write-Host "❌ npm not found" -ForegroundColor Red
+    Write-Host "ERROR: npm not found" -ForegroundColor Red
     exit 1
 }
 
@@ -36,59 +40,64 @@ foreach ($version in $postgresVersions) {
     if (Test-Path $testPath) {
         $postgresFound = $true
         $postgresPath = "C:\Program Files\PostgreSQL\$version\bin"
-        Write-Host "✅ PostgreSQL $version found" -ForegroundColor Green
+        Write-Host "OK PostgreSQL $version found" -ForegroundColor Green
         break
     }
 }
 
 if (-not $postgresFound) {
-    Write-Host "⚠️  PostgreSQL not found in PATH. Checking if service is running..." -ForegroundColor Yellow
+    Write-Host "WARNING: PostgreSQL not found in PATH. Checking if service is running..." -ForegroundColor Yellow
     $pgService = Get-Service -Name "postgresql*" -ErrorAction SilentlyContinue
     if ($pgService) {
-        Write-Host "✅ PostgreSQL service found: $($pgService.Name)" -ForegroundColor Green
-        Write-Host "⚠️  Note: You may need to add PostgreSQL to PATH manually" -ForegroundColor Yellow
+        Write-Host "OK PostgreSQL service found: $($pgService.Name)" -ForegroundColor Green
+        Write-Host "NOTE: You may need to add PostgreSQL to PATH manually" -ForegroundColor Yellow
     } else {
-        Write-Host "❌ PostgreSQL not found. Please install PostgreSQL from https://www.postgresql.org/download/" -ForegroundColor Red
-        Write-Host "   Or use a cloud database (Railway, Supabase, Neon)" -ForegroundColor Yellow
+        Write-Host "ERROR: PostgreSQL not found. Please install PostgreSQL from https://www.postgresql.org/download/" -ForegroundColor Red
+        Write-Host "Or use a cloud database (Railway, Supabase, Neon)" -ForegroundColor Yellow
     }
 }
 
-Write-Host "`n📦 Installing backend dependencies..." -ForegroundColor Yellow
-Set-Location backend
+Write-Host ""
+Write-Host "Installing backend dependencies..." -ForegroundColor Yellow
+$backendPath = Join-Path $scriptPath "backend"
+Set-Location $backendPath
+
 if (Test-Path "node_modules") {
-    Write-Host "⚠️  node_modules exists. Skipping npm install..." -ForegroundColor Yellow
+    Write-Host "WARNING: node_modules exists. Skipping npm install..." -ForegroundColor Yellow
 } else {
     npm install
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "❌ Backend npm install failed" -ForegroundColor Red
-        Set-Location ..
+        Write-Host "ERROR: Backend npm install failed" -ForegroundColor Red
+        Set-Location $scriptPath
         exit 1
     }
-    Write-Host "✅ Backend dependencies installed" -ForegroundColor Green
+    Write-Host "OK Backend dependencies installed" -ForegroundColor Green
 }
 
-Write-Host "`n📦 Installing frontend dependencies..." -ForegroundColor Yellow
-Set-Location ../frontend
+Write-Host ""
+Write-Host "Installing frontend dependencies..." -ForegroundColor Yellow
+$frontendPath = Join-Path $scriptPath "frontend"
+Set-Location $frontendPath
+
 if (Test-Path "node_modules") {
-    Write-Host "⚠️  node_modules exists. Skipping npm install..." -ForegroundColor Yellow
+    Write-Host "WARNING: node_modules exists. Skipping npm install..." -ForegroundColor Yellow
 } else {
     npm install
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "❌ Frontend npm install failed" -ForegroundColor Red
-        Set-Location ../..
+        Write-Host "ERROR: Frontend npm install failed" -ForegroundColor Red
+        Set-Location $scriptPath
         exit 1
     }
-    Write-Host "✅ Frontend dependencies installed" -ForegroundColor Green
+    Write-Host "OK Frontend dependencies installed" -ForegroundColor Green
 }
-
-Set-Location ../..
 
 # Setup backend .env file
-Write-Host "`n⚙️  Setting up backend environment..." -ForegroundColor Yellow
-Set-Location backend
+Write-Host ""
+Write-Host "Setting up backend environment..." -ForegroundColor Yellow
+Set-Location $backendPath
 
 if (-not (Test-Path ".env")) {
-    Write-Host "📝 Creating backend .env file..." -ForegroundColor Yellow
+    Write-Host "Creating backend .env file..." -ForegroundColor Yellow
     
     # Generate JWT secrets
     $jwtSecret = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 32 | ForEach-Object {[char]$_})
@@ -116,64 +125,56 @@ JWT_REFRESH_EXPIRES_IN=7d
 CORS_ORIGIN=http://localhost:3000
 "@
     
-    $envContent | Out-File -FilePath ".env" -Encoding utf8
-    Write-Host "✅ Created backend/.env file" -ForegroundColor Green
-    Write-Host "⚠️  IMPORTANT: Edit backend/.env and set your DATABASE_URL with correct password!" -ForegroundColor Yellow
+    $envFile = Join-Path $backendPath ".env"
+    [System.IO.File]::WriteAllText($envFile, $envContent)
+    Write-Host "OK Created backend/.env file" -ForegroundColor Green
+    Write-Host "IMPORTANT: Edit backend/.env and set your DATABASE_URL with correct password!" -ForegroundColor Yellow
 } else {
-    Write-Host "✅ Backend .env file already exists" -ForegroundColor Green
+    Write-Host "OK Backend .env file already exists" -ForegroundColor Green
 }
 
 # Setup frontend .env.local file
-Write-Host "`n⚙️  Setting up frontend environment..." -ForegroundColor Yellow
-Set-Location ../frontend
+Write-Host ""
+Write-Host "Setting up frontend environment..." -ForegroundColor Yellow
+Set-Location $frontendPath
 
 if (-not (Test-Path ".env.local")) {
-    Write-Host "📝 Creating frontend .env.local file..." -ForegroundColor Yellow
-    $envLocalContent = @"
-NEXT_PUBLIC_API_URL=http://localhost:3001
-"@
-    $envLocalContent | Out-File -FilePath ".env.local" -Encoding utf8
-    Write-Host "✅ Created frontend/.env.local file" -ForegroundColor Green
+    Write-Host "Creating frontend .env.local file..." -ForegroundColor Yellow
+    $envLocalContent = "NEXT_PUBLIC_API_URL=http://localhost:3001"
+    $envLocalFile = Join-Path $frontendPath ".env.local"
+    [System.IO.File]::WriteAllText($envLocalFile, $envLocalContent)
+    Write-Host "OK Created frontend/.env.local file" -ForegroundColor Green
 } else {
-    Write-Host "✅ Frontend .env.local file already exists" -ForegroundColor Green
+    Write-Host "OK Frontend .env.local file already exists" -ForegroundColor Green
 }
-
-Set-Location ../..
 
 # Database setup
-Write-Host "`n🗄️  Database setup..." -ForegroundColor Yellow
-Set-Location backend
+Write-Host ""
+Write-Host "Database setup..." -ForegroundColor Yellow
+Set-Location $backendPath
 
-Write-Host "📝 Generating Prisma Client..." -ForegroundColor Yellow
+Write-Host "Generating Prisma Client..." -ForegroundColor Yellow
 npm run db:generate
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "⚠️  Prisma generate failed. Make sure DATABASE_URL is correct in .env" -ForegroundColor Yellow
+    Write-Host "WARNING: Prisma generate failed. Make sure DATABASE_URL is correct in .env" -ForegroundColor Yellow
+    Write-Host "You can run 'npm run db:generate' manually after setting DATABASE_URL" -ForegroundColor Yellow
 } else {
-    Write-Host "✅ Prisma Client generated" -ForegroundColor Green
+    Write-Host "OK Prisma Client generated" -ForegroundColor Green
 }
 
-Write-Host "`n📊 Pushing database schema..." -ForegroundColor Yellow
-Write-Host "⚠️  Make sure PostgreSQL is running and DATABASE_URL in .env is correct!" -ForegroundColor Yellow
-$pushDb = Read-Host "Push schema to database now? (y/n)"
+Write-Host ""
+Write-Host "Database schema push..." -ForegroundColor Yellow
+Write-Host "WARNING: Make sure PostgreSQL is running and DATABASE_URL in .env is correct!" -ForegroundColor Yellow
+Write-Host "You can push the schema manually by running: cd backend; npm run db:push" -ForegroundColor Yellow
 
-if ($pushDb -eq "y" -or $pushDb -eq "Y") {
-    npm run db:push
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅ Database schema pushed successfully!" -ForegroundColor Green
-    } else {
-        Write-Host "❌ Database push failed. Check your DATABASE_URL in backend/.env" -ForegroundColor Red
-        Write-Host "   You can run 'npm run db:push' manually later" -ForegroundColor Yellow
-    }
-} else {
-    Write-Host "⏭️  Skipping database push. Run 'npm run db:push' manually when ready" -ForegroundColor Yellow
-}
+Set-Location $scriptPath
 
-Set-Location ..
-
-Write-Host "`n✅ Setup complete!" -ForegroundColor Green
-Write-Host "`n📋 Next steps:" -ForegroundColor Cyan
-Write-Host "   1. Edit backend/.env and set your DATABASE_URL" -ForegroundColor White
-Write-Host "   2. If database wasn't pushed, run: cd backend && npm run db:push" -ForegroundColor White
-Write-Host "   3. Run start.ps1 to start the application" -ForegroundColor White
-Write-Host "`n🚀 To start the app, run: .\start.ps1" -ForegroundColor Cyan
-
+Write-Host ""
+Write-Host "Setup complete!" -ForegroundColor Green
+Write-Host ""
+Write-Host "Next steps:" -ForegroundColor Cyan
+Write-Host "  1. Edit backend/.env and set your DATABASE_URL with correct password" -ForegroundColor White
+Write-Host "  2. Push database schema: cd backend; npm run db:push" -ForegroundColor White
+Write-Host "  3. Run start.ps1 to start the application" -ForegroundColor White
+Write-Host ""
+Write-Host "To start the app, run: .\start.ps1" -ForegroundColor Cyan

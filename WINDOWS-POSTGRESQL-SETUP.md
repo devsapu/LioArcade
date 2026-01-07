@@ -168,3 +168,5 @@ If successful, you'll see:
 
 The `psql` command is only needed if you want to manually run SQL commands. Prisma will do all the database setup for you automatically!
 
+
+

@@ -27,3 +27,5 @@ if (Test-Path $psqlPath) {
     Write-Host "⚠️  Warning: psql.exe not found at expected location" -ForegroundColor Yellow
 }
 
+
+

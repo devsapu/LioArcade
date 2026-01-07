@@ -27,12 +27,20 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
+          console.log('Attempting login for:', email);
           const response = await apiClient.post<AuthResponse>('/auth/login', {
             email,
             password,
           });
 
+          console.log('Login response:', response.data);
+
           const { user, accessToken, refreshToken } = response.data;
+
+          if (!user || !accessToken || !refreshToken) {
+            console.error('Missing data in login response:', { user, accessToken: !!accessToken, refreshToken: !!refreshToken });
+            throw new Error('Invalid response from server. Missing user or tokens.');
+          }
 
           // Store tokens
           localStorage.setItem('accessToken', accessToken);
@@ -45,9 +53,22 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
           });
+          
+          console.log('Login successful, user set:', user.email);
         } catch (error: any) {
+          console.error('=== AUTH STORE LOGIN ERROR ===');
+          console.error('Full error:', error);
+          console.error('Error response:', error.response);
+          console.error('Error response data:', error.response?.data);
+          console.error('Error status:', error.response?.status);
+          console.error('Error message:', error.message);
+          console.error('================================');
+          
           const errorMessage =
-            error.response?.data?.error || 'Login failed. Please try again.';
+            error.response?.data?.error || 
+            error.response?.data?.message ||
+            error.message || 
+            'Login failed. Please try again.';
           set({
             isLoading: false,
             error: errorMessage,
