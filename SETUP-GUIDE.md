@@ -131,8 +131,8 @@ PORT=3001
 NODE_ENV=development
 
 # Database URL
-# For local PostgreSQL:
-DATABASE_URL="postgresql://postgres:your_password@localhost:5432/lioarcade?schema=public"
+# For local PostgreSQL (SSL disabled for local development):
+DATABASE_URL="postgresql://postgres:your_password@localhost:5432/lioarcade?schema=public&sslmode=disable"
 
 # For cloud database (Railway/Supabase/Neon), use their connection string:
 # DATABASE_URL="postgresql://user:password@host:5432/database?sslmode=require"
