@@ -19,8 +19,12 @@ app.get('/health', (req, res) => {
 
 // API Routes
 import authRoutes from './routes/authRoutes.js';
+import contentRoutes from './routes/contentRoutes.js';
+import gamificationRoutes from './routes/gamificationRoutes.js';
 
 app.use('/api/auth', authRoutes);
+app.use('/api/content', contentRoutes);
+app.use('/api/gamification', gamificationRoutes);
 
 app.get('/api', (req, res) => {
   res.json({
@@ -36,15 +40,8 @@ app.get('/api', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message || 'Internal server error',
-      ...(config.nodeEnv === 'development' && { stack: err.stack }),
-    },
-  });
-});
+import { errorHandler } from './middleware/errorHandler.js';
+app.use(errorHandler);
 
 // 404 handler
 app.use((req, res) => {
