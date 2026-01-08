@@ -61,6 +61,20 @@ export default function DashboardPage() {
             </Link>
           </div>
 
+          {/* Featured Quiz */}
+          <div className="mb-8">
+            <Link href="/content/quizzes" className="block p-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg hover:shadow-xl transition-shadow text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-5xl mb-2">📝</div>
+                  <h3 className="text-2xl font-bold mb-2">Take a Quiz</h3>
+                  <p className="text-blue-100">Test your knowledge and earn points!</p>
+                </div>
+                <div className="text-4xl">→</div>
+              </div>
+            </Link>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Link href="/content/quizzes" className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-2">📝</div>
