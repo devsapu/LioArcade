@@ -132,8 +132,19 @@ CORS_ORIGIN=https://your-frontend.vercel.app
 
 Go to backend service → **Settings** → **"Build & Deploy"**:
 
-- **Build Command:** `cd backend && npm install && npx prisma generate`
-- **Start Command:** `cd backend && npm start`
+- **⚠️ IMPORTANT:** Leave **Build Command** EMPTY (let Nixpacks auto-detect)
+- **Start Command:** `npm start`
+
+**Why?** Nixpacks will automatically:
+- Detect Node.js from `package.json`
+- Run `npm install` (which triggers `postinstall` script)
+- Generate Prisma client via `postinstall` script
+- Start your server with `npm start`
+
+**If you see "npm: command not found" error:**
+- Go to Settings → "Build & Deploy"
+- Clear/delete any Build Command that's set
+- Save and redeploy
 
 #### 1.6 Deploy Backend
 
@@ -289,6 +300,14 @@ If using local file storage for profile images:
   2. Set it to `backend` (without quotes)
   3. Save and redeploy
   4. Railway will now detect your `package.json` in the `backend` folder
+
+**Problem:** "npm: command not found" during build
+- **Solution:**
+  1. Go to Railway → Your Backend Service → Settings → "Build & Deploy"
+  2. **Clear/delete the Build Command field** (leave it empty)
+  3. Ensure Start Command is: `npm start`
+  4. Save and redeploy
+  5. Nixpacks will auto-detect Node.js and handle the build automatically
 
 **Problem:** Database connection fails
 - **Solution:** Check `DATABASE_URL` is set correctly in Railway. Railway should auto-set this if database and backend are in the same project.
