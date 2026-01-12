@@ -4,6 +4,8 @@ export type UserRole = 'LEARNER' | 'ADMIN' | 'CONTENT_MANAGER';
 export interface User {
   id: string;
   email: string;
+  username: string;
+  profileImage?: string | null;
   role: UserRole;
   createdAt?: string;
 }

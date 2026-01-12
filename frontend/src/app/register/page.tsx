@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const { register, isLoading, error, clearError } = useAuthStore();
   const [formData, setFormData] = useState({
     email: '',
+    username: '',
     password: '',
     confirmPassword: '',
   });
@@ -22,8 +23,18 @@ export default function RegisterPage() {
     setFormError('');
     clearError();
 
-    if (!formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.email || !formData.username || !formData.password || !formData.confirmPassword) {
       setFormError('Please fill in all fields');
+      return;
+    }
+
+    if (formData.username.length < 3) {
+      setFormError('Username must be at least 3 characters');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      setFormError('Username can only contain letters, numbers, and underscores');
       return;
     }
 
@@ -38,7 +49,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await register(formData.email, formData.password);
+      await register(formData.email, formData.username, formData.password);
       router.push('/dashboard');
     } catch (err) {
       // Error is handled by the store
@@ -74,6 +85,15 @@ export default function RegisterPage() {
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+            <Input
+              label="Username"
+              type="text"
+              autoComplete="username"
+              required
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              placeholder="Choose a unique username"
             />
             <Input
               label="Password"

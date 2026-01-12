@@ -9,19 +9,23 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error, clearError, user } = useAuthStore();
+  const { login, isLoading, error, clearError, user, hasHydrated } = useAuthStore();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [formError, setFormError] = useState('');
 
-  // Redirect to dashboard if already logged in
+  // Redirect to dashboard if already logged in (after hydration)
   useEffect(() => {
-    if (user) {
-      router.push('/dashboard');
+    if (!hasHydrated) {
+      return;
     }
-  }, [user, router]);
+
+    if (user) {
+      router.replace('/dashboard');
+    }
+  }, [user, hasHydrated]); // Removed router from deps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
