@@ -16,6 +16,14 @@ interface Game {
   color: string;
 }
 
+// ============================================
+// GAMES CATALOG
+// ============================================
+// To add a new game:
+// 1. Add a new object to this array with the required fields
+// 2. Create the game page at /games/[game-id]/page.tsx
+// 3. The game will automatically appear in the grid below
+// ============================================
 const games: Game[] = [
   {
     id: 'math',
@@ -27,6 +35,7 @@ const games: Game[] = [
     color: 'from-blue-500 to-blue-600',
   },
   // Add more games here as you create them
+  // Example:
   // {
   //   id: 'memory',
   //   title: 'Memory Game',
@@ -35,6 +44,15 @@ const games: Game[] = [
   //   difficulty: 'Medium',
   //   href: '/games/memory',
   //   color: 'from-purple-500 to-purple-600',
+  // },
+  // {
+  //   id: 'word-search',
+  //   title: 'Word Search',
+  //   description: 'Find hidden words in a grid puzzle',
+  //   icon: '🔍',
+  //   difficulty: 'Easy',
+  //   href: '/games/word-search',
+  //   color: 'from-orange-500 to-orange-600',
   // },
 ];
 
