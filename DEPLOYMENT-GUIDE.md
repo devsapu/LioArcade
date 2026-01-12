@@ -91,9 +91,12 @@ Before starting, ensure you have:
 
 1. In the same Railway project, click **"+ New"**
 2. Select **"GitHub Repo"** → Choose your repository
-3. Railway will auto-detect it's a Node.js project
-4. **Important:** Set the **Root Directory** to `backend`
+3. **⚠️ CRITICAL:** Set the **Root Directory** to `backend` BEFORE Railway starts building
    - Go to Settings → "Root Directory" → Enter `backend`
+   - This tells Railway where your Node.js app is located
+   - If you skip this step, Railway will fail to detect your app (see troubleshooting)
+
+4. Railway will auto-detect it's a Node.js project once root directory is set
 
 #### 1.4 Configure Environment Variables
 
@@ -279,6 +282,13 @@ If using local file storage for profile images:
 ## Troubleshooting
 
 ### Backend Issues
+
+**Problem:** Railway can't detect Node.js app / "Railpack could not determine how to build"
+- **Solution:** 
+  1. Go to Railway → Your Backend Service → Settings → "Root Directory"
+  2. Set it to `backend` (without quotes)
+  3. Save and redeploy
+  4. Railway will now detect your `package.json` in the `backend` folder
 
 **Problem:** Database connection fails
 - **Solution:** Check `DATABASE_URL` is set correctly in Railway. Railway should auto-set this if database and backend are in the same project.
