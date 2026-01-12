@@ -7,6 +7,7 @@ import { Button } from '@/components/Button';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 import { LeaderboardEntry } from '@/types';
+import { Avatar } from '@/components/Avatar';
 
 export default function LeaderboardPage() {
   const router = useRouter();
@@ -24,7 +25,8 @@ export default function LeaderboardPage() {
     }
 
     fetchLeaderboard();
-  }, [user, router, sortBy, limit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, sortBy, limit]); // Removed router from deps
 
   const fetchLeaderboard = async () => {
     try {
@@ -36,10 +38,16 @@ export default function LeaderboardPage() {
           limit: limit,
         },
       });
-      setLeaderboard(response.data.leaderboard);
+      // Ensure we have valid data before setting
+      if (response.data && Array.isArray(response.data.leaderboard)) {
+        setLeaderboard(response.data.leaderboard);
+      } else {
+        setLeaderboard([]);
+      }
     } catch (err: any) {
       console.error('Failed to fetch leaderboard:', err);
       setError(err.response?.data?.error || 'Failed to load leaderboard');
+      setLeaderboard([]); // Set empty array on error
     } finally {
       setIsLoading(false);
     }
@@ -87,9 +95,14 @@ export default function LeaderboardPage() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">🏆 Leaderboard</h1>
-          <p className="text-gray-600 text-lg">See how you rank against other learners</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">🏆 Leaderboard</h1>
+            <p className="text-gray-600 text-lg">See how you rank against other learners</p>
+          </div>
+          <Button variant="secondary" onClick={fetchLeaderboard} disabled={isLoading}>
+            {isLoading ? 'Refreshing...' : '🔄 Refresh'}
+          </Button>
         </div>
 
         {/* Sort Options */}
@@ -236,11 +249,16 @@ export default function LeaderboardPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
+                          <div className="flex items-center space-x-3">
+                            <Avatar
+                              src={entry.user.profileImage}
+                              username={entry.user.username}
+                              size="sm"
+                            />
                             <div className={`text-sm font-medium ${
                               isCurrentUser ? 'text-primary-700 font-bold' : 'text-gray-900'
                             }`}>
-                              {entry.user.email}
+                              {entry.user.username}
                               {isCurrentUser && (
                                 <span className="ml-2 text-xs bg-primary-600 text-white px-2 py-1 rounded">
                                   You

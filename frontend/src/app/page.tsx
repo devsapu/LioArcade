@@ -8,13 +8,18 @@ import { Button } from '@/components/Button';
 
 export default function Home() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    if (user) {
-      router.push('/dashboard');
+    // Wait for hydration before redirecting
+    if (!hasHydrated) {
+      return;
     }
-  }, [user, router]);
+
+    if (user) {
+      router.replace('/dashboard');
+    }
+  }, [user, hasHydrated]); // Removed router from deps
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-primary-50 to-white">

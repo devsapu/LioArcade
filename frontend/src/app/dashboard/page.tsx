@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
@@ -8,10 +8,12 @@ import Link from 'next/link';
 import apiClient from '@/lib/api';
 import { ProgressResponse } from '@/types';
 import { CategoryTile } from '@/components/CategoryTile';
+import { Avatar } from '@/components/Avatar';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, hasHydrated } = useAuthStore();
+  const redirectingRef = useRef(false);
   const [progress, setProgress] = useState<ProgressResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [contentCounts, setContentCounts] = useState({
@@ -21,15 +23,27 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
+    // Wait for hydration before checking auth
+    if (!hasHydrated) {
       return;
     }
 
-    fetchProgress();
-  }, [user, router]);
+    if (!user && !redirectingRef.current) {
+      redirectingRef.current = true;
+      router.replace('/login');
+      return;
+    }
+
+    // Fetch progress when user is available and hydrated
+    if (user && hasHydrated) {
+      fetchProgress();
+    }
+  }, [user, hasHydrated]); // Removed router and progress from deps
 
   const fetchProgress = async () => {
+    if (isLoading === false) {
+      setIsLoading(true);
+    }
     try {
       const response = await apiClient.get<ProgressResponse>('/gamification/progress');
       setProgress(response.data);
@@ -54,26 +68,43 @@ export default function DashboardPage() {
       });
       const flashcardsCount = flashcardsResponse.data?.total || flashcardsResponse.data?.content?.length || 0;
 
-      setContentCounts({
-        games: 1, // Currently hardcoded - update when adding more games
-        quizzes: quizzesCount || 2, // Fallback to sample count
-        flashcards: flashcardsCount || 2, // Fallback to sample count
+      setContentCounts(prev => {
+        // Only update if values actually changed to prevent re-renders
+        if (prev.quizzes === quizzesCount && prev.flashcards === flashcardsCount) {
+          return prev;
+        }
+        return {
+          games: 1, // Currently hardcoded - update when adding more games
+          quizzes: quizzesCount || 2, // Fallback to sample count
+          flashcards: flashcardsCount || 2, // Fallback to sample count
+        };
       });
     } catch (err) {
       // Use fallback counts if API fails
-      setContentCounts({
-        games: 1,
-        quizzes: 2,
-        flashcards: 2,
+      setContentCounts(prev => {
+        if (prev.quizzes === 2 && prev.flashcards === 2) {
+          return prev;
+        }
+        return {
+          games: 1,
+          quizzes: 2,
+          flashcards: 2,
+        };
       });
     }
   };
 
   useEffect(() => {
-    if (user) {
+    // Only fetch once when user is available and hydrated
+    if (user && hasHydrated && contentCounts.quizzes === 0 && contentCounts.flashcards === 0) {
       fetchContentCounts();
     }
-  }, [user]);
+  }, [user, hasHydrated]); // Only depend on user and hasHydrated
+
+  // If not hydrated yet, AuthProvider will show loading
+  if (!hasHydrated) {
+    return null;
+  }
 
   if (!user) {
     return null;
@@ -106,7 +137,12 @@ export default function DashboardPage() {
               <h1 className="text-xl font-bold text-gray-900">LioArcade</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">{user.email}</span>
+              <Link href="/profile" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+                <Avatar src={user.profileImage} username={user.username} size="sm" />
+                <span className="text-sm text-gray-700 font-medium">
+                  {user.username}
+                </span>
+              </Link>
               <Button variant="secondary" onClick={logout}>
                 Logout
               </Button>
@@ -120,7 +156,7 @@ export default function DashboardPage() {
           {/* Welcome Section with Animation */}
           <div className="mb-8 animate-fade-in">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back, {user.email?.split('@')[0]}! 👋
+              Welcome back, {user.username}! 👋
             </h2>
             <p className="text-gray-600">Continue your learning journey</p>
           </div>

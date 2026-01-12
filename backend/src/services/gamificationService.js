@@ -244,6 +244,8 @@ export const getLeaderboard = async (options = {}) => {
         select: {
           id: true,
           email: true,
+          username: true,
+          profileImage: true,
         },
       },
     },

@@ -1,0 +1,11 @@
+# Ignore backend when deploying frontend
+backend/
+_bmad/
+_bmad-output/
+docs/
+*.md
+!README.md
+node_modules/
+.env
+.env.local
+*.log

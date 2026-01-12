@@ -4,6 +4,10 @@ import { z } from 'zod';
 // Validation schemas
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
+  username: z.string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be at most 30 characters')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   role: z.enum(['LEARNER', 'ADMIN', 'CONTENT_MANAGER']).optional(),
 });
@@ -21,6 +25,7 @@ export const register = async (req, res, next) => {
     const validatedData = registerSchema.parse(req.body);
     const user = await authService.registerUser(
       validatedData.email,
+      validatedData.username,
       validatedData.password,
       validatedData.role
     );
@@ -62,13 +67,13 @@ export const login = async (req, res, next) => {
         details: error.errors,
       });
     }
-    
+
     if (error.message === 'Invalid email or password') {
       return res.status(401).json({
         error: error.message,
       });
     }
-    
+
     next(error);
   }
 };

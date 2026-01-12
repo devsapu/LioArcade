@@ -9,8 +9,10 @@ interface AuthState {
   refreshToken: string | null;
   isLoading: boolean;
   error: string | null;
+  hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, role?: string) => Promise<void>;
+  register: (email: string, username: string, password: string, role?: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
 }
@@ -23,6 +25,10 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       isLoading: false,
       error: null,
+      hasHydrated: false,
+      setHasHydrated: (state) => {
+        set({ hasHydrated: state });
+      },
 
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
@@ -42,7 +48,7 @@ export const useAuthStore = create<AuthState>()(
             throw new Error('Invalid response from server. Missing user or tokens.');
           }
 
-          // Store tokens
+          // Store tokens in localStorage
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('refreshToken', refreshToken);
 
@@ -54,7 +60,9 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           });
           
-          console.log('Login successful, user set:', user.email);
+          console.log('Login successful, tokens stored');
+          
+          console.log('Login successful, user set:', user.username);
         } catch (error: any) {
           console.error('=== AUTH STORE LOGIN ERROR ===');
           console.error('Full error:', error);
@@ -80,18 +88,19 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (email: string, password: string, role?: string) => {
+      register: async (email: string, username: string, password: string, role?: string) => {
         set({ isLoading: true, error: null });
         try {
           const response = await apiClient.post<AuthResponse>('/auth/register', {
             email,
+            username,
             password,
             role,
           });
 
           const { user, accessToken, refreshToken } = response.data;
 
-          // Store tokens
+          // Store tokens in localStorage
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('refreshToken', refreshToken);
 
@@ -102,6 +111,8 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
           });
+          
+          console.log('Login successful, tokens stored');
         } catch (error: any) {
           const errorMessage =
             error.response?.data?.error || 'Registration failed. Please try again.';
@@ -137,6 +148,14 @@ export const useAuthStore = create<AuthState>()(
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
       }),
+      onRehydrateStorage: () => {
+        return (state) => {
+          // This callback runs after Zustand rehydrates from localStorage
+          if (state) {
+            state.setHasHydrated(true);
+          }
+        };
+      },
     }
   )
 );

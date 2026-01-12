@@ -27,6 +27,7 @@ export const generateAccessToken = (user) => {
     {
       userId: user.id,
       email: user.email,
+      username: user.username,
       role: user.role,
     },
     config.jwt.secret,
@@ -50,14 +51,23 @@ export const generateRefreshToken = (user) => {
 /**
  * Register a new user
  */
-export const registerUser = async (email, password, role = 'LEARNER') => {
-  // Check if user already exists
-  const existingUser = await prisma.user.findUnique({
+export const registerUser = async (email, username, password, role = 'LEARNER') => {
+  // Check if user with email already exists
+  const existingUserByEmail = await prisma.user.findUnique({
     where: { email },
   });
 
-  if (existingUser) {
+  if (existingUserByEmail) {
     throw new Error('User with this email already exists');
+  }
+
+  // Check if user with username already exists
+  const existingUserByUsername = await prisma.user.findUnique({
+    where: { username },
+  });
+
+  if (existingUserByUsername) {
+    throw new Error('Username is already taken');
   }
 
   // Hash password
@@ -67,12 +77,15 @@ export const registerUser = async (email, password, role = 'LEARNER') => {
   const user = await prisma.user.create({
     data: {
       email,
+      username,
       passwordHash,
       role,
     },
     select: {
       id: true,
       email: true,
+      username: true,
+      profileImage: true,
       role: true,
       createdAt: true,
     },
@@ -119,6 +132,7 @@ export const loginUser = async (email, password) => {
     user: {
       id: user.id,
       email: user.email,
+      username: user.username,
       role: user.role,
     },
     accessToken,
@@ -138,6 +152,7 @@ export const refreshAccessToken = async (refreshToken) => {
       select: {
         id: true,
         email: true,
+        username: true,
         role: true,
       },
     });

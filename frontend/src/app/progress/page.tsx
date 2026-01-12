@@ -20,14 +20,30 @@ export default function ProgressPage() {
       setIsLoading(true);
       setError(null);
       const response = await apiClient.get<ProgressResponse>('/gamification/progress');
-      setProgress(response.data);
+      // Ensure we have valid data before setting
+      if (response.data) {
+        setProgress(response.data);
+      } else {
+        setError('No progress data found. Start playing games to track your progress!');
+      }
     } catch (err: any) {
       console.error('Failed to fetch progress:', err);
-      if (err.response?.status === 404) {
+      const status = err.response?.status;
+      const errorMessage = err.response?.data?.error || '';
+      
+      if (status === 404) {
         setError('No progress data found. Start playing games to track your progress!');
+      } else if (status === 401 || status === 403) {
+        // Token issue - the interceptor should handle refresh, but if it fails, show message
+        if (errorMessage.includes('token') || errorMessage.includes('Token') || errorMessage.includes('Invalid')) {
+          setError('Authentication error. Please try refreshing the page or log in again.');
+        } else {
+          setError(errorMessage || 'Authentication required');
+        }
       } else {
-        setError(err.response?.data?.error || 'Failed to load progress');
+        setError(errorMessage || 'Failed to load progress');
       }
+      setProgress(null); // Clear progress on error
     } finally {
       setIsLoading(false);
     }
@@ -38,8 +54,10 @@ export default function ProgressPage() {
       router.push('/login');
       return;
     }
+    // Only fetch once when component mounts or user changes
     fetchProgress();
-  }, [user, router, fetchProgress]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // Removed router and fetchProgress from deps to prevent loops
 
   if (!user) {
     return null;
@@ -67,9 +85,14 @@ export default function ProgressPage() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">📊 Your Progress</h1>
-          <p className="text-gray-600 text-lg">Track your learning journey and achievements</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">📊 Your Progress</h1>
+            <p className="text-gray-600 text-lg">Track your learning journey and achievements</p>
+          </div>
+          <Button variant="secondary" onClick={fetchProgress} disabled={isLoading}>
+            {isLoading ? 'Refreshing...' : '🔄 Refresh'}
+          </Button>
         </div>
 
         {isLoading ? (
@@ -83,9 +106,14 @@ export default function ProgressPage() {
               <div className="text-6xl mb-4">📭</div>
               <h2 className="text-2xl font-semibold mb-2">No Progress Yet</h2>
               <p className="text-gray-600 mb-6">{error}</p>
-              <Link href="/content/games">
-                <Button variant="primary">Start Playing Games</Button>
-              </Link>
+              <div className="flex justify-center space-x-4">
+                <Button variant="secondary" onClick={fetchProgress}>
+                  Refresh
+                </Button>
+                <Link href="/content/games">
+                  <Button variant="primary">Start Playing Games</Button>
+                </Link>
+              </div>
             </div>
           </div>
         ) : progress ? (
