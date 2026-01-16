@@ -1,0 +1,7 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "rootDirectory": "backend",
+  "deploy": {
+    "startCommand": "npm start"
+  }
+}
