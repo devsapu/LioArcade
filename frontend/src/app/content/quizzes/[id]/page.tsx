@@ -158,15 +158,42 @@ export default function QuizPage() {
     try {
       const percentage = (score / totalQuestions) * 100;
       
-      await apiClient.post('/gamification/submit-score', {
+      // Prepare request payload
+      const payload: any = {
         contentId: quiz.id,
         score: score,
         maxScore: totalQuestions,
-      });
+      };
+      
+      // For sample quizzes, include the quiz data so backend can create it
+      if (quiz.id.startsWith('sample-')) {
+        payload.sampleQuizData = {
+          type: quiz.type,
+          title: quiz.title,
+          description: quiz.description,
+          contentData: quiz.contentData,
+          category: quiz.category,
+          difficultyLevel: quiz.difficultyLevel,
+        };
+      }
+      
+      const response = await apiClient.post('/gamification/submit-score', payload);
 
       setShowResult(true);
-    } catch (error) {
+      
+      // Show success message
+      if (response.data?.pointsEarned) {
+        alert(`🎉 Score submitted! You earned ${response.data.pointsEarned} points! ${response.data.levelUp ? 'Level up! 🚀' : ''}`);
+      }
+      
+      // Trigger a custom event to refresh progress/leaderboard if those pages are open
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('scoreSubmitted'));
+      }
+    } catch (error: any) {
       console.error('Failed to submit score:', error);
+      const errorMessage = error.response?.data?.error || error.response?.data?.details?.[0]?.message || 'Failed to submit score';
+      alert(`Error: ${errorMessage}`);
       // Still show result even if submission fails
       setShowResult(true);
     } finally {

@@ -166,15 +166,27 @@ export default function FlashcardPage() {
       const cardsStudied = studiedCards.length;
       const maxScore = totalCards;
       
-      await apiClient.post('/gamification/submit-score', {
+      const response = await apiClient.post('/gamification/submit-score', {
         contentId: flashcardSet.id,
         score: cardsStudied,
         maxScore: maxScore,
       });
 
       setShowResult(true);
-    } catch (error) {
+      
+      // Show success message
+      if (response.data?.pointsEarned) {
+        alert(`🎉 Progress submitted! You earned ${response.data.pointsEarned} points! ${response.data.levelUp ? 'Level up! 🚀' : ''}`);
+      }
+      
+      // Trigger a custom event to refresh progress/leaderboard if those pages are open
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('scoreSubmitted'));
+      }
+    } catch (error: any) {
       console.error('Failed to submit progress:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to submit progress';
+      alert(`Error: ${errorMessage}`);
       setShowResult(true);
     } finally {
       setIsSubmitting(false);

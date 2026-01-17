@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
@@ -9,33 +9,35 @@ import apiClient from '@/lib/api';
 import { LeaderboardEntry } from '@/types';
 import { Avatar } from '@/components/Avatar';
 
+type CategoryFilter = 'OVERALL' | 'QUIZ' | 'FLASHCARD' | 'MINI_GAME';
+
 export default function LeaderboardPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [champions, setChampions] = useState<Record<string, LeaderboardEntry | null>>({
+    OVERALL: null,
+    QUIZ: null,
+    FLASHCARD: null,
+    MINI_GAME: null,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'points' | 'level'>('points');
   const [limit, setLimit] = useState(20);
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('OVERALL');
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    fetchLeaderboard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, sortBy, limit]); // Removed router from deps
-
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
+      
+      const contentType = categoryFilter === 'OVERALL' ? undefined : categoryFilter;
       const response = await apiClient.get<{ leaderboard: LeaderboardEntry[] }>('/gamification/leaderboard', {
         params: {
           by: sortBy,
           limit: limit,
+          contentType: contentType,
         },
       });
       // Ensure we have valid data before setting
@@ -51,7 +53,59 @@ export default function LeaderboardPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sortBy, limit, categoryFilter]);
+
+  // Fetch champions for each category
+  const fetchChampions = useCallback(async () => {
+    try {
+      const categories: CategoryFilter[] = ['OVERALL', 'QUIZ', 'FLASHCARD', 'MINI_GAME'];
+      const championsData: Record<string, LeaderboardEntry | null> = {};
+
+      for (const category of categories) {
+        try {
+          const contentType = category === 'OVERALL' ? undefined : category;
+          const response = await apiClient.get<{ leaderboard: LeaderboardEntry[] }>('/gamification/leaderboard', {
+            params: {
+              by: 'points',
+              limit: 1,
+              contentType: contentType,
+            },
+          });
+          championsData[category] = response.data?.leaderboard?.[0] || null;
+        } catch (err) {
+          championsData[category] = null;
+        }
+      }
+
+      setChampions(championsData);
+    } catch (err) {
+      console.error('Failed to fetch champions:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    fetchLeaderboard();
+    fetchChampions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, sortBy, limit, categoryFilter, fetchLeaderboard, fetchChampions]); // Removed router from deps
+
+  // Listen for score submission events to refresh leaderboard
+  useEffect(() => {
+    const handleScoreSubmitted = () => {
+      fetchLeaderboard();
+      fetchChampions();
+    };
+
+    window.addEventListener('scoreSubmitted', handleScoreSubmitted);
+    return () => {
+      window.removeEventListener('scoreSubmitted', handleScoreSubmitted);
+    };
+  }, [fetchLeaderboard, fetchChampions]);
 
   const getRankIcon = (rank: number) => {
     if (rank === 1) return '🥇';
@@ -97,12 +151,129 @@ export default function LeaderboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">🏆 Leaderboard</h1>
-            <p className="text-gray-600 text-lg">See how you rank against other learners</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              🏆 {categoryFilter === 'OVERALL' ? 'Overall' : 
+                   categoryFilter === 'QUIZ' ? 'Quiz' :
+                   categoryFilter === 'FLASHCARD' ? 'Flashcard' : 'Game'} Leaderboard
+            </h1>
+            <p className="text-gray-600 text-lg">
+              {categoryFilter === 'OVERALL' 
+                ? 'See how you rank overall across all categories'
+                : `See how you rank in ${categoryFilter === 'QUIZ' ? 'quizzes' : categoryFilter === 'FLASHCARD' ? 'flashcards' : 'mini-games'}`}
+            </p>
           </div>
-          <Button variant="secondary" onClick={fetchLeaderboard} disabled={isLoading}>
+          <Button variant="secondary" onClick={() => { fetchLeaderboard(); fetchChampions(); }} disabled={isLoading}>
             {isLoading ? 'Refreshing...' : '🔄 Refresh'}
           </Button>
+        </div>
+
+        {/* Champion Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* Overall Champion */}
+          <div 
+            className={`bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg shadow-lg p-4 cursor-pointer transition-transform hover:scale-105 ${
+              categoryFilter === 'OVERALL' ? 'ring-4 ring-yellow-300' : ''
+            }`}
+            onClick={() => setCategoryFilter('OVERALL')}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-2xl">👑</span>
+              <span className="text-xs font-semibold bg-white/30 px-2 py-1 rounded">Overall</span>
+            </div>
+            {champions.OVERALL ? (
+              <>
+                <div className="text-white font-bold text-lg mb-1">{champions.OVERALL.user.username}</div>
+                <div className="text-white/90 text-sm">{champions.OVERALL.points.toLocaleString()} pts</div>
+              </>
+            ) : (
+              <div className="text-white/80 text-sm">No champion yet</div>
+            )}
+          </div>
+
+          {/* Quiz Champion */}
+          <div 
+            className={`bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg shadow-lg p-4 cursor-pointer transition-transform hover:scale-105 ${
+              categoryFilter === 'QUIZ' ? 'ring-4 ring-blue-300' : ''
+            }`}
+            onClick={() => setCategoryFilter('QUIZ')}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-2xl">📝</span>
+              <span className="text-xs font-semibold bg-white/30 px-2 py-1 rounded">Quizzes</span>
+            </div>
+            {champions.QUIZ ? (
+              <>
+                <div className="text-white font-bold text-lg mb-1">{champions.QUIZ.user.username}</div>
+                <div className="text-white/90 text-sm">{champions.QUIZ.points.toLocaleString()} pts</div>
+              </>
+            ) : (
+              <div className="text-white/80 text-sm">No champion yet</div>
+            )}
+          </div>
+
+          {/* Flashcard Champion */}
+          <div 
+            className={`bg-gradient-to-br from-green-400 to-green-600 rounded-lg shadow-lg p-4 cursor-pointer transition-transform hover:scale-105 ${
+              categoryFilter === 'FLASHCARD' ? 'ring-4 ring-green-300' : ''
+            }`}
+            onClick={() => setCategoryFilter('FLASHCARD')}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-2xl">🎴</span>
+              <span className="text-xs font-semibold bg-white/30 px-2 py-1 rounded">Flashcards</span>
+            </div>
+            {champions.FLASHCARD ? (
+              <>
+                <div className="text-white font-bold text-lg mb-1">{champions.FLASHCARD.user.username}</div>
+                <div className="text-white/90 text-sm">{champions.FLASHCARD.points.toLocaleString()} pts</div>
+              </>
+            ) : (
+              <div className="text-white/80 text-sm">No champion yet</div>
+            )}
+          </div>
+
+          {/* Game Champion */}
+          <div 
+            className={`bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg shadow-lg p-4 cursor-pointer transition-transform hover:scale-105 ${
+              categoryFilter === 'MINI_GAME' ? 'ring-4 ring-purple-300' : ''
+            }`}
+            onClick={() => setCategoryFilter('MINI_GAME')}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-2xl">🎮</span>
+              <span className="text-xs font-semibold bg-white/30 px-2 py-1 rounded">Games</span>
+            </div>
+            {champions.MINI_GAME ? (
+              <>
+                <div className="text-white font-bold text-lg mb-1">{champions.MINI_GAME.user.username}</div>
+                <div className="text-white/90 text-sm">{champions.MINI_GAME.points.toLocaleString()} pts</div>
+              </>
+            ) : (
+              <div className="text-white/80 text-sm">No champion yet</div>
+            )}
+          </div>
+        </div>
+
+        {/* Category Tabs */}
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
+          <div className="flex items-center space-x-2 flex-wrap gap-2">
+            <span className="text-sm font-medium text-gray-700">View:</span>
+            {(['OVERALL', 'QUIZ', 'FLASHCARD', 'MINI_GAME'] as CategoryFilter[]).map((category) => (
+              <button
+                key={category}
+                onClick={() => setCategoryFilter(category)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  categoryFilter === category
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {category === 'OVERALL' ? '🌟 Overall' : 
+                 category === 'QUIZ' ? '📝 Quizzes' :
+                 category === 'FLASHCARD' ? '🎴 Flashcards' : '🎮 Games'}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Sort Options */}
@@ -321,16 +492,28 @@ export default function LeaderboardPage() {
           <h2 className="text-xl font-semibold mb-4">📊 How Rankings Work</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
             <div>
-              <p className="font-semibold text-gray-900 mb-1">Points Ranking</p>
-              <p>Ranked by total points earned from completing quizzes, flashcards, and games</p>
+              <p className="font-semibold text-gray-900 mb-1">Category Rankings</p>
+              <p>
+                {categoryFilter === 'OVERALL' 
+                  ? 'Overall rankings combine points from all categories (Quizzes, Flashcards, Games)'
+                  : `This leaderboard shows rankings based on points earned from ${categoryFilter === 'QUIZ' ? 'quizzes' : categoryFilter === 'FLASHCARD' ? 'flashcards' : 'mini-games'} only`}
+              </p>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 mb-1">Level Ranking</p>
-              <p>Ranked by current level, which increases as you earn more points</p>
+              <p className="font-semibold text-gray-900 mb-1">Points Calculation</p>
+              <p>
+                {categoryFilter === 'QUIZ' 
+                  ? 'Quizzes: 10-50 points based on score percentage'
+                  : categoryFilter === 'FLASHCARD'
+                  ? 'Flashcards: 5 points per card studied'
+                  : categoryFilter === 'MINI_GAME'
+                  ? 'Games: 20-100 points based on score percentage'
+                  : 'Points vary by category: Quizzes (10-50), Flashcards (5 per card), Games (20-100)'}
+              </p>
             </div>
             <div>
               <p className="font-semibold text-gray-900 mb-1">Top Performers</p>
-              <p>The top 3 players get special medals 🥇🥈🥉</p>
+              <p>The top 3 players get special medals 🥇🥈🥉. Click champion cards above to view category-specific rankings!</p>
             </div>
           </div>
         </div>

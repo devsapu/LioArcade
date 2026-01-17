@@ -59,6 +59,18 @@ export default function ProgressPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]); // Removed router and fetchProgress from deps to prevent loops
 
+  // Listen for score submission events to refresh progress
+  useEffect(() => {
+    const handleScoreSubmitted = () => {
+      fetchProgress();
+    };
+
+    window.addEventListener('scoreSubmitted', handleScoreSubmitted);
+    return () => {
+      window.removeEventListener('scoreSubmitted', handleScoreSubmitted);
+    };
+  }, [fetchProgress]);
+
   if (!user) {
     return null;
   }
