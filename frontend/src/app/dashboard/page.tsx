@@ -155,53 +155,111 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* Welcome Section with Animation */}
-          <div className="mb-8 animate-fade-in">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back, {user.username}! 👋
-            </h2>
-            <p className="text-gray-600">Continue your learning journey</p>
+          {/* Welcome Section with Enhanced Animations */}
+          <div className="mb-8 relative">
+            <div className="relative bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-6 shadow-lg border-2 border-transparent hover:border-blue-200 transition-all duration-500 overflow-hidden animate-fade-in">
+              {/* Animated background pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-32 h-32 bg-blue-400 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-pink-400 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-purple-400 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+              </div>
+              
+              {/* Floating emojis */}
+              <div className="absolute top-2 right-4 text-4xl animate-bounce-slow">👋</div>
+              <div className="absolute bottom-2 left-4 text-3xl animate-bounce-slow" style={{ animationDelay: '0.5s' }}>✨</div>
+              <div className="absolute top-1/2 right-8 text-2xl animate-bounce-slow" style={{ animationDelay: '1s' }}>🌟</div>
+              
+              {/* Content */}
+              <div className="relative z-10">
+                <h2 className="text-4xl font-bold mb-2 animate-slide-down">
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    Welcome back,
+                  </span>{' '}
+                  <span className="inline-block bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 bg-clip-text text-transparent animate-bounce-slow">
+                    {user.username}
+                  </span>
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">!</span>
+                </h2>
+                <p className="text-lg text-gray-700 font-medium animate-slide-up delay-100">
+                  Continue your learning journey 🚀
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Quick Stats Cards */}
+          {/* Quick Stats Cards with Enhanced Animations */}
           {!isLoading && progress && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 animate-fade-in">
-              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Total Points</p>
-                    <p className="text-2xl font-bold text-primary-600">{progress.gamification.points}</p>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              {/* Total Points Card */}
+              <div className="group relative bg-gradient-to-br from-yellow-50 via-orange-50 to-yellow-100 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-yellow-200 hover:border-yellow-400 overflow-hidden animate-slide-up delay-100">
+                {/* Animated background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                {/* Sparkles */}
+                <div className="absolute top-2 right-2 text-yellow-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-ping">✨</div>
+                <div className="absolute bottom-2 left-2 text-orange-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse">⭐</div>
+                <div className="relative z-10">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Total Points</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                      {progress.gamification.points}
+                    </p>
+                    <div className="text-4xl animate-bounce-slow">⭐</div>
                   </div>
-                  <div className="text-3xl">⭐</div>
                 </div>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Level</p>
-                    <p className="text-2xl font-bold text-primary-600">{progress.gamification.level}</p>
+
+              {/* Level Card */}
+              <div className="group relative bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-blue-200 hover:border-blue-400 overflow-hidden animate-slide-up delay-200">
+                {/* Animated background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                {/* Sparkles */}
+                <div className="absolute top-2 right-2 text-blue-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-ping">💫</div>
+                <div className="absolute bottom-2 left-2 text-indigo-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse">✨</div>
+                <div className="relative z-10">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Level</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                      {progress.gamification.level}
+                    </p>
+                    <div className="text-4xl animate-bounce-slow">🎯</div>
                   </div>
-                  <div className="text-3xl">🎯</div>
                 </div>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Badges</p>
-                    <p className="text-2xl font-bold text-primary-600">
+
+              {/* Badges Card */}
+              <div className="group relative bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-purple-200 hover:border-purple-400 overflow-hidden animate-slide-up delay-300">
+                {/* Animated background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                {/* Sparkles */}
+                <div className="absolute top-2 right-2 text-purple-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-ping">🌟</div>
+                <div className="absolute bottom-2 left-2 text-pink-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse">💎</div>
+                <div className="relative z-10">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Badges</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                       {Array.isArray(progress.gamification.badges) ? progress.gamification.badges.length : 0}
                     </p>
+                    <div className="text-4xl animate-bounce-slow">🏆</div>
                   </div>
-                  <div className="text-3xl">🏆</div>
                 </div>
               </div>
-              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Completed</p>
-                    <p className="text-2xl font-bold text-primary-600">{progress.statistics.totalCompleted}</p>
+
+              {/* Completed Card */}
+              <div className="group relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-green-200 hover:border-green-400 overflow-hidden animate-slide-up delay-400">
+                {/* Animated background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                {/* Sparkles */}
+                <div className="absolute top-2 right-2 text-green-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-ping">✨</div>
+                <div className="absolute bottom-2 left-2 text-emerald-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse">⭐</div>
+                <div className="relative z-10">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Completed</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                      {progress.statistics.totalCompleted}
+                    </p>
+                    <div className="text-4xl animate-bounce-slow">✅</div>
                   </div>
-                  <div className="text-3xl">✅</div>
                 </div>
               </div>
             </div>
