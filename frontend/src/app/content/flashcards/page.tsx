@@ -108,16 +108,16 @@ export default function FlashcardsPage() {
   const displayFlashcards = flashcards.length > 0 ? flashcards : sampleFlashcards;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-4">
               <Link href="/dashboard">
-                <h1 className="text-xl font-bold text-gray-900">LioArcade</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">LioArcade</h1>
               </Link>
-              <span className="text-gray-400">/</span>
-              <span className="text-gray-600">Flashcards</span>
+              <span className="text-gray-400 dark:text-gray-500">/</span>
+              <span className="text-gray-600 dark:text-gray-300">Flashcards</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/dashboard">
@@ -130,31 +130,31 @@ export default function FlashcardsPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">🎴 Flashcards</h1>
-          <p className="text-gray-600 text-lg">Study efficiently with spaced repetition!</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">🎴 Flashcards</h1>
+          <p className="text-gray-600 dark:text-gray-300 text-lg">Study efficiently with spaced repetition!</p>
         </div>
 
         {isLoading ? (
-          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
             <div className="text-6xl mb-4 animate-bounce">⏳</div>
-            <p className="text-gray-600">Loading flashcards...</p>
+            <p className="text-gray-600 dark:text-gray-300">Loading flashcards...</p>
           </div>
         ) : error ? (
-          <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 border border-gray-200 dark:border-gray-700">
             <div className="text-center">
               <div className="text-6xl mb-4">⚠️</div>
-              <h2 className="text-2xl font-semibold mb-2">Error Loading Flashcards</h2>
-              <p className="text-gray-600 mb-6">{error}</p>
+              <h2 className="text-2xl font-semibold mb-2 dark:text-white">Error Loading Flashcards</h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
               <Button variant="primary" onClick={fetchFlashcards}>
                 Try Again
               </Button>
             </div>
           </div>
         ) : displayFlashcards.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center border border-gray-200 dark:border-gray-700">
             <div className="text-6xl mb-4">📭</div>
-            <h2 className="text-2xl font-semibold mb-2">No Flashcards Available</h2>
-            <p className="text-gray-600">Check back soon for new flashcards!</p>
+            <h2 className="text-2xl font-semibold mb-2 dark:text-white">No Flashcards Available</h2>
+            <p className="text-gray-600 dark:text-gray-300">Check back soon for new flashcards!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -167,8 +167,8 @@ export default function FlashcardsPage() {
                   console.log(`[Flashcards] Clicked flashcard: ${flashcard.id}, navigating to: /content/flashcards/${flashcard.id}`);
                 }}
               >
-                <div className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden h-full">
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 text-white">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden h-full border border-gray-200 dark:border-gray-700">
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 p-6 text-white">
                     <div className="text-5xl mb-2">🎴</div>
                     <h2 className="text-2xl font-bold mb-1">{flashcard.title}</h2>
                     {flashcard.difficultyLevel && (
@@ -180,18 +180,18 @@ export default function FlashcardsPage() {
                   </div>
                   
                   <div className="p-6">
-                    <p className="text-gray-600 mb-4">{flashcard.description || 'Study and memorize!'}</p>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">{flashcard.description || 'Study and memorize!'}</p>
                     {flashcard.category && (
-                      <p className="text-sm text-gray-500 mb-2">Category: {flashcard.category}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Category: {flashcard.category}</p>
                     )}
                     {flashcard.contentData?.cards && (
-                      <p className="text-sm text-gray-500 mb-4">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                         {Array.isArray(flashcard.contentData.cards) 
                           ? `${flashcard.contentData.cards.length} cards`
                           : 'Multiple cards'}
                       </p>
                     )}
-                    <div className="flex items-center text-primary-600 font-semibold group-hover:text-primary-700">
+                    <div className="flex items-center text-primary-600 dark:text-primary-400 font-semibold group-hover:text-primary-700 dark:group-hover:text-primary-500">
                       <span>Start Studying</span>
                       <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
                     </div>

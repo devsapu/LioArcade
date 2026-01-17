@@ -266,16 +266,16 @@ export default function FlashcardPage() {
   const progress = totalCards > 0 ? Math.round((studiedCards.length / totalCards) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-4">
               <Link href="/content/flashcards">
-                <h1 className="text-xl font-bold text-gray-900">LioArcade</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">LioArcade</h1>
               </Link>
-              <span className="text-gray-400">/</span>
-              <span className="text-gray-600">{flashcardSet?.title || 'Flashcards'}</span>
+              <span className="text-gray-400 dark:text-gray-500">/</span>
+              <span className="text-gray-600 dark:text-gray-300">{flashcardSet?.title || 'Flashcards'}</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/content/flashcards" className="group relative">
@@ -309,25 +309,25 @@ export default function FlashcardPage() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {gameState === 'loading' && (
-          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
             <div className="text-6xl mb-4 animate-bounce">⏳</div>
-            <p className="text-gray-600">Loading flashcards...</p>
+            <p className="text-gray-600 dark:text-gray-300">Loading flashcards...</p>
           </div>
         )}
 
         {gameState === 'studying' && currentCard && (
-          <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 border border-gray-200 dark:border-gray-700">
             {/* Progress Bar */}
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Card {currentCardIndex + 1} of {totalCards}
                 </span>
-                <span className="text-sm font-medium text-primary-600">
+                <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
                   Studied: {studiedCards.length}/{totalCards}
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
                   className="bg-green-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${((currentCardIndex + 1) / totalCards) * 100}%` }}
@@ -386,7 +386,7 @@ export default function FlashcardPage() {
                   : 'animate-shake'
               }`}>
                 <div className={`text-2xl font-bold text-center mb-2 ${
-                  feedback === 'correct' ? 'text-green-600' : 'text-orange-600'
+                  feedback === 'correct' ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'
                 }`}>
                   {feedback === 'correct' ? (
                     <span className="flex items-center justify-center space-x-2">
@@ -485,14 +485,14 @@ export default function FlashcardPage() {
 
             {!isFlipped && (
               <div className="text-center">
-                <p className="text-gray-600 mb-4">Click the card to see the answer</p>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">Click the card to see the answer</p>
               </div>
             )}
           </div>
         )}
 
         {gameState === 'finished' && (
-          <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center transform transition-all duration-500 animate-scale-in overflow-hidden">
+          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center transform transition-all duration-500 animate-scale-in overflow-hidden border border-gray-200 dark:border-gray-700">
             {/* Animated Confetti Background */}
             <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
               {[...Array(15)].map((_, i) => (
@@ -521,7 +521,7 @@ export default function FlashcardPage() {
               </div>
 
               {/* Title with Slide-in Animation */}
-              <h2 className="text-4xl font-bold mb-6 text-gray-900 animate-slide-down">
+              <h2 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white animate-slide-down">
                 Study Complete!
               </h2>
               
@@ -529,16 +529,16 @@ export default function FlashcardPage() {
                 <>
                   {/* Progress Display with Staggered Animation */}
                   <div className="space-y-4 mb-8 animate-fade-in-up">
-                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-100">
-                      <span className="text-gray-600">Cards Studied:</span>{' '}
-                      <span className="text-primary-600 text-3xl">{studiedCards.length}/{totalCards}</span>
+                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200 animate-slide-up delay-100">
+                      <span className="text-gray-600 dark:text-gray-400">Cards Studied:</span>{' '}
+                      <span className="text-primary-600 dark:text-primary-400 text-3xl">{studiedCards.length}/{totalCards}</span>
                     </div>
-                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-200">
-                      <span className="text-gray-600">Progress:</span>{' '}
-                      <span className="text-green-600 text-3xl">{progress}%</span>
+                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200 animate-slide-up delay-200">
+                      <span className="text-gray-600 dark:text-gray-400">Progress:</span>{' '}
+                      <span className="text-green-600 dark:text-green-400 text-3xl">{progress}%</span>
                     </div>
                     {studiedCards.length === totalCards && (
-                      <div className="text-3xl text-yellow-600 font-bold animate-scale-bounce delay-300 mt-4">
+                      <div className="text-3xl text-yellow-600 dark:text-yellow-400 font-bold animate-scale-bounce delay-300 mt-4">
                         🏆 Perfect! You studied all cards! 🏆
                       </div>
                     )}
@@ -571,15 +571,15 @@ export default function FlashcardPage() {
                 <>
                   {/* Success State with Enhanced Animations */}
                   <div className="space-y-4 mb-8">
-                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-100">
-                      <span className="text-gray-600">Cards Studied:</span>{' '}
-                      <span className="text-primary-600 text-3xl">{studiedCards.length}/{totalCards}</span>
+                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200 animate-slide-up delay-100">
+                      <span className="text-gray-600 dark:text-gray-400">Cards Studied:</span>{' '}
+                      <span className="text-primary-600 dark:text-primary-400 text-3xl">{studiedCards.length}/{totalCards}</span>
                     </div>
-                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-200">
-                      <span className="text-gray-600">Progress:</span>{' '}
-                      <span className="text-green-600 text-3xl">{progress}%</span>
+                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200 animate-slide-up delay-200">
+                      <span className="text-gray-600 dark:text-gray-400">Progress:</span>{' '}
+                      <span className="text-green-600 dark:text-green-400 text-3xl">{progress}%</span>
                     </div>
-                    <div className="flex items-center justify-center space-x-2 text-lg text-green-600 font-semibold animate-slide-up delay-300 mt-4 p-3 bg-green-50 rounded-lg border-2 border-green-200">
+                    <div className="flex items-center justify-center space-x-2 text-lg text-green-600 dark:text-green-400 font-semibold animate-slide-up delay-300 mt-4 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border-2 border-green-200 dark:border-green-700">
                       <span className="text-2xl animate-bounce">✅</span>
                       <span>Progress submitted successfully!</span>
                     </div>

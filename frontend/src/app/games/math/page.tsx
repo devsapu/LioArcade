@@ -268,14 +268,14 @@ export default function MathGamePage() {
   const accuracy = totalProblems > 0 ? (correctAnswers / totalProblems) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link href="/dashboard">
-                <h1 className="text-xl font-bold text-gray-900">LioArcade</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">LioArcade</h1>
               </Link>
             </div>
             <div className="flex items-center space-x-4">
@@ -310,47 +310,47 @@ export default function MathGamePage() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">🧮 Math Challenge</h1>
-          <p className="text-gray-600">Test your math skills and earn points!</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">🧮 Math Challenge</h1>
+          <p className="text-gray-600 dark:text-gray-300">Test your math skills and earn points!</p>
         </div>
 
         {/* Menu Screen */}
         {gameState === 'menu' && (
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto">
-            <h2 className="text-2xl font-semibold mb-6 text-center">Choose Difficulty</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md mx-auto border border-gray-200 dark:border-gray-700">
+            <h2 className="text-2xl font-semibold mb-6 text-center dark:text-white">Choose Difficulty</h2>
             <div className="space-y-4">
               <button
                 onClick={() => setDifficulty('easy')}
                 className={`w-full p-4 rounded-lg border-2 transition-all ${
                   difficulty === 'easy'
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-gray-200 hover:border-primary-300'
+                    ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/30'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-500 bg-white dark:bg-gray-700'
                 }`}
               >
-                <div className="text-xl font-semibold mb-1">Easy</div>
-                <div className="text-sm text-gray-600">Numbers 1-20, Addition & Subtraction</div>
+                <div className="text-xl font-semibold mb-1 dark:text-white">Easy</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Numbers 1-20, Addition & Subtraction</div>
               </button>
               <button
                 onClick={() => setDifficulty('medium')}
                 className={`w-full p-4 rounded-lg border-2 transition-all ${
                   difficulty === 'medium'
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-gray-200 hover:border-primary-300'
+                    ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/30'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-500 bg-white dark:bg-gray-700'
                 }`}
               >
-                <div className="text-xl font-semibold mb-1">Medium</div>
-                <div className="text-sm text-gray-600">Numbers 1-50, All Operations</div>
+                <div className="text-xl font-semibold mb-1 dark:text-white">Medium</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Numbers 1-50, All Operations</div>
               </button>
               <button
                 onClick={() => setDifficulty('hard')}
                 className={`w-full p-4 rounded-lg border-2 transition-all ${
                   difficulty === 'hard'
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-gray-200 hover:border-primary-300'
+                    ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/30'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-500 bg-white dark:bg-gray-700'
                 }`}
               >
-                <div className="text-xl font-semibold mb-1">Hard</div>
-                <div className="text-sm text-gray-600">Numbers 1-100, All Operations</div>
+                <div className="text-xl font-semibold mb-1 dark:text-white">Hard</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Numbers 1-100, All Operations</div>
               </button>
             </div>
             <Button
@@ -365,24 +365,24 @@ export default function MathGamePage() {
 
         {/* Playing Screen */}
         {gameState === 'playing' && (
-          <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 border border-gray-200 dark:border-gray-700">
             {/* Stats Bar */}
             <div className="grid grid-cols-4 gap-4 mb-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary-600">{score}</div>
-                <div className="text-sm text-gray-600">Score</div>
+                <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">{score}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Score</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">{timeLeft}s</div>
-                <div className="text-sm text-gray-600">Time</div>
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{timeLeft}s</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Time</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{streak}</div>
-                <div className="text-sm text-gray-600">Streak</div>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{streak}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Streak</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{correctAnswers}/{totalProblems}</div>
-                <div className="text-sm text-gray-600">Correct</div>
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{correctAnswers}/{totalProblems}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Correct</div>
               </div>
             </div>
 
@@ -441,7 +441,7 @@ export default function MathGamePage() {
                       : 'animate-shake'
                   }`}>
                     <div className={`text-3xl font-bold mb-2 ${
-                      feedback === 'correct' ? 'text-green-600' : 'text-red-600'
+                      feedback === 'correct' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                     }`}>
                       {feedback === 'correct' ? (
                         <span className="flex items-center justify-center space-x-2">
@@ -458,14 +458,14 @@ export default function MathGamePage() {
                       )}
                     </div>
                     {feedback === 'correct' && streak > 1 && (
-                      <div className="text-xl text-orange-600 font-semibold">
+                      <div className="text-xl text-orange-600 dark:text-orange-400 font-semibold">
                         🔥 {streak} in a row! Keep it up! 🔥
                       </div>
                     )}
                   </div>
                 )}
 
-                <div className="text-6xl font-bold text-gray-900 mb-4">
+                <div className="text-6xl font-bold text-gray-900 dark:text-white mb-4">
                   {currentProblem.num1} {getOperationSymbol(currentProblem.operation)} {currentProblem.num2} = ?
                 </div>
                 <div className="flex justify-center items-center space-x-4">
@@ -474,12 +474,12 @@ export default function MathGamePage() {
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-                    className={`text-4xl font-bold text-center w-32 px-4 py-2 border-2 rounded-lg focus:outline-none transition-all ${
+                    className={`text-4xl font-bold text-center w-32 px-4 py-2 border-2 rounded-lg focus:outline-none transition-all dark:text-white dark:bg-gray-700 ${
                       feedback === 'correct' 
-                        ? 'border-green-500 bg-green-50' 
+                        ? 'border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-900/30' 
                         : feedback === 'incorrect' 
-                        ? 'border-red-500 bg-red-50' 
-                        : 'border-gray-300 focus:border-primary-500'
+                        ? 'border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/30' 
+                        : 'border-gray-300 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400'
                     }`}
                     autoFocus
                     disabled={feedback !== null}
@@ -500,21 +500,21 @@ export default function MathGamePage() {
 
         {/* Finished Screen */}
         {gameState === 'finished' && (
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md mx-auto text-center border border-gray-200 dark:border-gray-700">
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-3xl font-bold mb-4">Game Over!</h2>
+            <h2 className="text-3xl font-bold mb-4 dark:text-white">Game Over!</h2>
             <div className="space-y-3 mb-6">
-              <div className="text-xl">
+              <div className="text-xl dark:text-gray-300">
                 <span className="font-semibold">Final Score:</span> {score} points
               </div>
-              <div className="text-xl">
+              <div className="text-xl dark:text-gray-300">
                 <span className="font-semibold">Accuracy:</span> {accuracy.toFixed(1)}%
               </div>
-              <div className="text-xl">
+              <div className="text-xl dark:text-gray-300">
                 <span className="font-semibold">Problems Solved:</span> {correctAnswers}/{totalProblems}
               </div>
               {streak > 0 && (
-                <div className="text-xl text-orange-600">
+                <div className="text-xl text-orange-600 dark:text-orange-400">
                   <span className="font-semibold">Best Streak:</span> {streak}
                 </div>
               )}

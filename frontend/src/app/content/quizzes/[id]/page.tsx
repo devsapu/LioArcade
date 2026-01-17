@@ -294,9 +294,9 @@ export default function QuizPage() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {gameState === 'loading' && (
-          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
             <div className="text-6xl mb-4 animate-bounce">⏳</div>
-            <p className="text-gray-600">Loading quiz...</p>
+            <p className="text-gray-600 dark:text-gray-300">Loading quiz...</p>
           </div>
         )}
 
@@ -305,16 +305,16 @@ export default function QuizPage() {
             {/* Progress Bar */}
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Question {currentQuestionIndex + 1} of {totalQuestions}
                 </span>
-                <span className="text-sm font-medium text-primary-600">
+                <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
                   Score: {score}/{totalQuestions}
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
-                  className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-primary-600 dark:bg-primary-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
                 />
               </div>
@@ -372,7 +372,7 @@ export default function QuizPage() {
                   : 'animate-shake'
               }`}>
                 <div className={`text-3xl font-bold text-center mb-2 ${
-                  feedback === 'correct' ? 'text-green-600' : 'text-red-600'
+                  feedback === 'correct' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                 }`}>
                   {feedback === 'correct' ? (
                     <span className="flex items-center justify-center space-x-2">
@@ -393,7 +393,7 @@ export default function QuizPage() {
 
             {/* Question */}
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">
                 {currentQuestion.question}
               </h2>
 
@@ -412,18 +412,18 @@ export default function QuizPage() {
                       disabled={feedback !== null}
                       className={`w-full p-4 rounded-lg text-left transition-all duration-200 ${
                         showCorrect
-                          ? 'bg-green-100 border-2 border-green-500'
+                          ? 'bg-green-100 dark:bg-green-800 border-2 border-green-500 dark:border-green-400 text-green-900 dark:text-green-100'
                           : showIncorrect
-                          ? 'bg-red-100 border-2 border-red-500'
+                          ? 'bg-red-100 dark:bg-red-800 border-2 border-red-500 dark:border-red-400 text-red-900 dark:text-red-100'
                           : isSelected
-                          ? 'bg-primary-100 border-2 border-primary-500'
-                          : 'bg-gray-50 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
+                          ? 'bg-blue-100 dark:bg-blue-800 border-2 border-primary-500 dark:border-primary-400 text-blue-900 dark:text-blue-100'
+                          : 'bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-900 dark:text-gray-100'
                       } ${feedback !== null ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-medium">{option}</span>
-                        {showCorrect && <span className="text-2xl">✓</span>}
-                        {showIncorrect && <span className="text-2xl">✗</span>}
+                        {showCorrect && <span className="text-2xl text-green-700 dark:text-green-200">✓</span>}
+                        {showIncorrect && <span className="text-2xl text-red-700 dark:text-red-200">✗</span>}
                       </div>
                     </button>
                   );
@@ -475,7 +475,7 @@ export default function QuizPage() {
               </div>
 
               {/* Title with Slide-in Animation */}
-              <h2 className="text-4xl font-bold mb-6 text-gray-900 animate-slide-down">
+              <h2 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white animate-slide-down">
                 Quiz Complete!
               </h2>
               
@@ -483,21 +483,21 @@ export default function QuizPage() {
                 <>
                   {/* Score Display with Staggered Animation */}
                   <div className="space-y-4 mb-8 animate-fade-in-up">
-                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-100">
-                      <span className="text-gray-600">Your Score:</span>{' '}
-                      <span className="text-primary-600 text-3xl">{score}/{totalQuestions}</span>
+                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200 animate-slide-up delay-100">
+                      <span className="text-gray-600 dark:text-gray-400">Your Score:</span>{' '}
+                      <span className="text-primary-600 dark:text-primary-400 text-3xl">{score}/{totalQuestions}</span>
                     </div>
-                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-200">
-                      <span className="text-gray-600">Accuracy:</span>{' '}
-                      <span className="text-green-600 text-3xl">{percentage}%</span>
+                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200 animate-slide-up delay-200">
+                      <span className="text-gray-600 dark:text-gray-400">Accuracy:</span>{' '}
+                      <span className="text-green-600 dark:text-green-400 text-3xl">{percentage}%</span>
                     </div>
                     {percentage === 100 && (
-                      <div className="text-3xl text-yellow-600 font-bold animate-scale-bounce delay-300 mt-4">
+                      <div className="text-3xl text-yellow-600 dark:text-yellow-400 font-bold animate-scale-bounce delay-300 mt-4">
                         🏆 Perfect Score! 🏆
                       </div>
                     )}
                     {percentage >= 80 && percentage < 100 && (
-                      <div className="text-2xl text-green-600 font-semibold animate-scale-bounce delay-300 mt-4">
+                      <div className="text-2xl text-green-600 dark:text-green-400 font-semibold animate-scale-bounce delay-300 mt-4">
                         🌟 Great Job! 🌟
                       </div>
                     )}
@@ -530,15 +530,15 @@ export default function QuizPage() {
                 <>
                   {/* Success State with Enhanced Animations */}
                   <div className="space-y-4 mb-8">
-                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-100">
-                      <span className="text-gray-600">Final Score:</span>{' '}
-                      <span className="text-primary-600 text-3xl">{score}/{totalQuestions}</span>
+                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200 animate-slide-up delay-100">
+                      <span className="text-gray-600 dark:text-gray-400">Final Score:</span>{' '}
+                      <span className="text-primary-600 dark:text-primary-400 text-3xl">{score}/{totalQuestions}</span>
                     </div>
-                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-200">
-                      <span className="text-gray-600">Accuracy:</span>{' '}
-                      <span className="text-green-600 text-3xl">{percentage}%</span>
+                    <div className="text-2xl font-semibold text-gray-800 dark:text-gray-200 animate-slide-up delay-200">
+                      <span className="text-gray-600 dark:text-gray-400">Accuracy:</span>{' '}
+                      <span className="text-green-600 dark:text-green-400 text-3xl">{percentage}%</span>
                     </div>
-                    <div className="flex items-center justify-center space-x-2 text-lg text-green-600 font-semibold animate-slide-up delay-300 mt-4 p-3 bg-green-50 rounded-lg border-2 border-green-200">
+                    <div className="flex items-center justify-center space-x-2 text-lg text-green-600 dark:text-green-400 font-semibold animate-slide-up delay-300 mt-4 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border-2 border-green-200 dark:border-green-700">
                       <span className="text-2xl animate-bounce">✅</span>
                       <span>Score submitted successfully!</span>
                     </div>
