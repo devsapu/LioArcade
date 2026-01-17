@@ -28,8 +28,8 @@ export const Button: React.FC<ButtonProps> = ({
         };
       case 'secondary':
         return {
-          container: 'bg-gradient-to-r from-gray-50 via-blue-50 to-indigo-50 text-gray-800 shadow-md hover:shadow-lg transform hover:scale-105 border-2 border-gray-300 hover:border-blue-400',
-          overlay: 'bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300',
+          container: 'bg-gradient-to-r from-gray-50 via-blue-50 to-indigo-50 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 text-gray-800 dark:text-gray-200 shadow-md hover:shadow-lg transform hover:scale-105 border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500',
+          overlay: 'bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300 dark:from-blue-500 dark:via-indigo-500 dark:to-purple-500',
           sparkles: ['text-blue-400', 'text-indigo-400'],
         };
       case 'danger':

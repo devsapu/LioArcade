@@ -26,7 +26,7 @@ export function SoundControls() {
           setShowControls(!showControls);
           playSound('click');
         }}
-        className="w-14 h-14 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center border-2 border-primary-300 hover:border-primary-500 hover:scale-110"
+        className="w-14 h-14 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center border-2 border-primary-300 dark:border-gray-600 hover:border-primary-500 dark:hover:border-primary-400 hover:scale-110"
         aria-label="Sound controls"
       >
         <span className="text-2xl">
@@ -36,11 +36,11 @@ export function SoundControls() {
 
       {/* Controls Panel */}
       {showControls && (
-        <div className="absolute bottom-16 right-0 bg-white rounded-xl shadow-2xl p-4 min-w-[200px] border-2 border-primary-200 animate-slide-up">
+        <div className="absolute bottom-16 right-0 bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 min-w-[200px] border-2 border-primary-200 dark:border-gray-700 animate-slide-up">
           <div className="space-y-4">
             {/* Sound Effects Toggle */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Sound Effects</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sound Effects</span>
               <button
                 onClick={() => {
                   toggleSound();
@@ -61,7 +61,7 @@ export function SoundControls() {
             {/* Sound Effects Volume */}
             {soundEnabled && (
               <div>
-                <label className="text-xs text-gray-600 mb-1 block">Effects Volume</label>
+                <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Effects Volume</label>
                 <input
                   type="range"
                   min="0"
@@ -78,8 +78,8 @@ export function SoundControls() {
             )}
 
             {/* Background Music Toggle */}
-            <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-              <span className="text-sm font-medium text-gray-700">Background Music</span>
+            <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Background Music</span>
               <button
                 onClick={() => {
                   toggleBackgroundMusic();
@@ -100,7 +100,7 @@ export function SoundControls() {
             {/* Background Music Volume */}
             {backgroundMusicEnabled && (
               <div>
-                <label className="text-xs text-gray-600 mb-1 block">Music Volume</label>
+                <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Music Volume</label>
                 <input
                   type="range"
                   min="0"

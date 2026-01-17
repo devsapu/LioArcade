@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
 import { InteractiveCharacter } from '@/components/InteractiveCharacter';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 import { ProgressResponse } from '@/types';
@@ -131,17 +132,18 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-primary-50">
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">LioArcade</h1>
+            <div className="flex items-center space-x-3">
+              <ThemeToggle />
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">LioArcade</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/profile" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
                 <Avatar src={user.profileImage} username={user.username} size="sm" />
-                <span className="text-sm text-gray-700 font-medium">
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                   {user.username}
                 </span>
               </Link>
@@ -157,7 +159,7 @@ export default function DashboardPage() {
         <div className="px-4 py-6 sm:px-0">
           {/* Welcome Section with Enhanced Animations */}
           <div className="mb-8 relative">
-            <div className="relative bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-6 shadow-lg border-2 border-transparent hover:border-blue-200 transition-all duration-500 overflow-hidden animate-fade-in">
+            <div className="relative bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/30 dark:via-purple-900/30 dark:to-pink-900/30 rounded-2xl p-6 shadow-lg border-2 border-transparent hover:border-blue-200 dark:hover:border-blue-600 transition-all duration-500 overflow-hidden animate-fade-in">
               {/* Animated background pattern */}
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 left-0 w-32 h-32 bg-blue-400 rounded-full blur-3xl animate-pulse"></div>
@@ -181,7 +183,7 @@ export default function DashboardPage() {
                   </span>
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">!</span>
                 </h2>
-                <p className="text-lg text-gray-700 font-medium animate-slide-up delay-100">
+                <p className="text-lg text-gray-700 dark:text-gray-300 font-medium animate-slide-up delay-100">
                   Continue your learning journey 🚀
                 </p>
               </div>
@@ -192,14 +194,14 @@ export default function DashboardPage() {
           {!isLoading && progress && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
               {/* Total Points Card */}
-              <div className="group relative bg-gradient-to-br from-yellow-50 via-orange-50 to-yellow-100 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-yellow-200 hover:border-yellow-400 overflow-hidden animate-slide-up delay-100">
+              <div className="group relative bg-gradient-to-br from-yellow-50 via-orange-50 to-yellow-100 dark:from-yellow-900/30 dark:via-orange-900/30 dark:to-yellow-800/30 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-yellow-200 dark:border-yellow-700 hover:border-yellow-400 dark:hover:border-yellow-500 overflow-hidden animate-slide-up delay-100">
                 {/* Animated background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 {/* Sparkles */}
                 <div className="absolute top-2 right-2 text-yellow-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-ping">✨</div>
                 <div className="absolute bottom-2 left-2 text-orange-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse">⭐</div>
                 <div className="relative z-10">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Total Points</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Total Points</p>
                   <div className="flex items-center justify-between">
                     <p className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
                       {progress.gamification.points}
@@ -210,14 +212,14 @@ export default function DashboardPage() {
               </div>
 
               {/* Level Card */}
-              <div className="group relative bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-blue-200 hover:border-blue-400 overflow-hidden animate-slide-up delay-200">
+              <div className="group relative bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-blue-800/30 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500 overflow-hidden animate-slide-up delay-200">
                 {/* Animated background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 {/* Sparkles */}
                 <div className="absolute top-2 right-2 text-blue-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-ping">💫</div>
                 <div className="absolute bottom-2 left-2 text-indigo-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse">✨</div>
                 <div className="relative z-10">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Level</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Level</p>
                   <div className="flex items-center justify-between">
                     <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                       {progress.gamification.level}
@@ -228,14 +230,14 @@ export default function DashboardPage() {
               </div>
 
               {/* Badges Card */}
-              <div className="group relative bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-purple-200 hover:border-purple-400 overflow-hidden animate-slide-up delay-300">
+              <div className="group relative bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-purple-800/30 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-purple-200 dark:border-purple-700 hover:border-purple-400 dark:hover:border-purple-500 overflow-hidden animate-slide-up delay-300">
                 {/* Animated background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 {/* Sparkles */}
                 <div className="absolute top-2 right-2 text-purple-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-ping">🌟</div>
                 <div className="absolute bottom-2 left-2 text-pink-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse">💎</div>
                 <div className="relative z-10">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Badges</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Badges</p>
                   <div className="flex items-center justify-between">
                     <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                       {Array.isArray(progress.gamification.badges) ? progress.gamification.badges.length : 0}
@@ -246,14 +248,14 @@ export default function DashboardPage() {
               </div>
 
               {/* Completed Card */}
-              <div className="group relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-green-200 hover:border-green-400 overflow-hidden animate-slide-up delay-400">
+              <div className="group relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 dark:from-green-900/30 dark:via-emerald-900/30 dark:to-green-800/30 rounded-xl shadow-lg p-5 hover:shadow-2xl transition-all duration-500 hover:scale-110 border-2 border-green-200 dark:border-green-700 hover:border-green-400 dark:hover:border-green-500 overflow-hidden animate-slide-up delay-400">
                 {/* Animated background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 {/* Sparkles */}
                 <div className="absolute top-2 right-2 text-green-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-ping">✨</div>
                 <div className="absolute bottom-2 left-2 text-emerald-400 text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse">⭐</div>
                 <div className="relative z-10">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Completed</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Completed</p>
                   <div className="flex items-center justify-between">
                     <p className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                       {progress.statistics.totalCompleted}
@@ -267,7 +269,7 @@ export default function DashboardPage() {
 
           {/* Main Category Tiles - Games, Quizzes, Flashcards */}
           <div className="mb-8 relative">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Explore Learning Content</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Explore Learning Content</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div 
                 className="animate-tile-enter" 
@@ -344,11 +346,11 @@ export default function DashboardPage() {
           {/* Progress and Leaderboard Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
             <Link href="/progress" className="group">
-              <div className="p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">📊 Your Progress</h3>
-                    <p className="text-gray-600 mb-4">View detailed progress and achievements</p>
+                    <h3 className="text-xl font-semibold mb-2 dark:text-white">📊 Your Progress</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">View detailed progress and achievements</p>
                     <span className="text-primary-600 font-semibold group-hover:text-primary-700 flex items-center">
                       View detailed progress
                       <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
@@ -360,11 +362,11 @@ export default function DashboardPage() {
             </Link>
 
             <Link href="/leaderboard" className="group">
-              <div className="p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">🏆 Leaderboard</h3>
-                    <p className="text-gray-600 mb-4">See how you rank against other learners</p>
+                    <h3 className="text-xl font-semibold mb-2 dark:text-white">🏆 Leaderboard</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">See how you rank against other learners</p>
                     <span className="text-primary-600 font-semibold group-hover:text-primary-700 flex items-center">
                       See rankings
                       <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>

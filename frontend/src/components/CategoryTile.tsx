@@ -37,7 +37,7 @@ export function CategoryTile({
         console.log(`[CategoryTile] Clicked: ${title}, href: ${href}`);
       }}
     >
-      <div className="relative h-full bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:scale-[1.03] hover:-translate-y-2">
+      <div className="relative h-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:scale-[1.03] hover:-translate-y-2 border border-gray-200 dark:border-gray-700">
         {/* Animated gradient background */}
         <div
           className={`absolute inset-0 bg-gradient-to-br ${gradientFrom} ${gradientTo} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
@@ -60,19 +60,19 @@ export function CategoryTile({
           </div>
 
           {/* Title */}
-          <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-white transition-colors duration-300">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-white transition-colors duration-300">
             {title}
           </h3>
 
           {/* Description */}
-          <p className="text-gray-600 mb-4 flex-grow group-hover:text-white/90 transition-colors duration-300">
+          <p className="text-gray-600 dark:text-gray-300 mb-4 flex-grow group-hover:text-white/90 transition-colors duration-300">
             {description}
           </p>
 
           {/* Item count badge */}
           {itemCount !== undefined && (
             <div className="mb-4">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700 group-hover:bg-white/20 group-hover:text-white transition-all duration-300">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 group-hover:bg-white/20 group-hover:text-white transition-all duration-300">
                 {itemCount} {itemLabel || 'items'}
               </span>
             </div>

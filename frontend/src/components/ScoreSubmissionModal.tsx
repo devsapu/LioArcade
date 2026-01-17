@@ -60,7 +60,7 @@ export function ScoreSubmissionModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all animate-scale-in">
+      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all animate-scale-in border border-gray-200 dark:border-gray-700">
         {type === 'success' ? (
           <div className="text-center">
             {/* Confetti Animation */}
@@ -94,7 +94,7 @@ export function ScoreSubmissionModal({
             </div>
 
             {/* Title */}
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Score Submitted!
             </h2>
 
@@ -155,12 +155,12 @@ export function ScoreSubmissionModal({
             </div>
 
             {/* Error Title */}
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Submission Failed
             </h2>
 
             {/* Error Message */}
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               {errorMessage || 'Something went wrong. Please try again.'}
             </p>
 

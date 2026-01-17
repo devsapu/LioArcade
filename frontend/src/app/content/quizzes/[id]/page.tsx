@@ -251,16 +251,16 @@ export default function QuizPage() {
   const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-4">
               <Link href="/content/quizzes">
-                <h1 className="text-xl font-bold text-gray-900">LioArcade</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">LioArcade</h1>
               </Link>
-              <span className="text-gray-400">/</span>
-              <span className="text-gray-600">{quiz?.title || 'Quiz'}</span>
+              <span className="text-gray-400 dark:text-gray-500">/</span>
+              <span className="text-gray-600 dark:text-gray-300">{quiz?.title || 'Quiz'}</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/content/quizzes" className="group relative">
@@ -301,7 +301,7 @@ export default function QuizPage() {
         )}
 
         {gameState === 'playing' && currentQuestion && (
-          <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 border border-gray-200 dark:border-gray-700">
             {/* Progress Bar */}
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
@@ -446,7 +446,7 @@ export default function QuizPage() {
         )}
 
         {gameState === 'finished' && (
-          <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center transform transition-all duration-500 animate-scale-in overflow-hidden">
+          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center transform transition-all duration-500 animate-scale-in overflow-hidden border border-gray-200 dark:border-gray-700">
             {/* Animated Confetti Background */}
             <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
               {[...Array(15)].map((_, i) => (
