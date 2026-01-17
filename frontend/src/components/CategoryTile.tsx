@@ -33,6 +33,9 @@ export function CategoryTile({
       href={href}
       className="group block h-full"
       style={{ animationDelay: `${delay}ms` }}
+      onClick={(e) => {
+        console.log(`[CategoryTile] Clicked: ${title}, href: ${href}`);
+      }}
     >
       <div className="relative h-full bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:scale-[1.03] hover:-translate-y-2">
         {/* Animated gradient background */}

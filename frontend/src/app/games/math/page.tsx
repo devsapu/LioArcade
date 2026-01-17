@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
+import { ScoreSubmissionModal } from '@/components/ScoreSubmissionModal';
+import { useSound } from '@/hooks/useSound';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 
@@ -31,6 +33,18 @@ export default function MathGamePage() {
   const [totalProblems, setTotalProblems] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error';
+    pointsEarned?: number;
+    levelUp?: boolean;
+    newLevel?: number;
+    errorMessage?: string;
+  }>({
+    isOpen: false,
+    type: 'success',
+  });
+  const { playSound, startGameMusic, stopGameMusic } = useSound();
 
   // Generate random problem based on difficulty
   const generateProblem = useCallback((): Problem => {
@@ -84,6 +98,8 @@ export default function MathGamePage() {
     setUserAnswer('');
     setFeedback(null);
     setCurrentProblem(generateProblem());
+    // Start game music when game starts
+    startGameMusic();
   };
 
   // Handle answer submission
@@ -96,12 +112,15 @@ export default function MathGamePage() {
     setTotalProblems(prev => prev + 1);
     setFeedback(isCorrect ? 'correct' : 'incorrect');
 
+    // Play sound effect
     if (isCorrect) {
+      playSound('correct');
       const pointsEarned = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 15 : 20;
       setScore(prev => prev + pointsEarned);
       setCorrectAnswers(prev => prev + 1);
       setStreak(prev => prev + 1);
     } else {
+      playSound('incorrect');
       setStreak(0);
     }
 
@@ -133,6 +152,9 @@ export default function MathGamePage() {
       setTimeLeft(prev => {
         if (prev <= 1) {
           setGameState('finished');
+          // Stop game music and play victory sound
+          stopGameMusic();
+          playSound('victory');
           return 0;
         }
         return prev - 1;
@@ -148,16 +170,72 @@ export default function MathGamePage() {
 
     setIsSubmitting(true);
     try {
-      // For now, we'll skip contentId requirement or create a default math game content
-      // In a full implementation, you'd create/fetch a content item first
       const accuracy = totalProblems > 0 ? (correctAnswers / totalProblems) * 100 : 0;
       
-      // You can integrate with content API here if needed
-      // For now, just show success message
-      alert(`Score submitted! You earned ${score} points with ${accuracy.toFixed(1)}% accuracy!`);
-    } catch (error) {
+      // Create math game content data for submission
+      const mathGameContent = {
+        type: 'MINI_GAME' as const,
+        title: `Math Challenge - ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`,
+        description: `Math game with ${difficulty} difficulty. Score: ${correctAnswers}/${totalProblems} (${accuracy.toFixed(1)}% accuracy)`,
+        contentData: {
+          gameType: 'math',
+          difficulty: difficulty,
+          totalProblems: totalProblems,
+          correctAnswers: correctAnswers,
+          score: score,
+          timeLimit: 60,
+        },
+        category: 'Mathematics',
+        difficultyLevel: difficulty === 'easy' ? 'BEGINNER' : difficulty === 'medium' ? 'INTERMEDIATE' : 'ADVANCED' as const,
+      };
+
+      // Submit score with content creation (like sample quizzes)
+      const payload: any = {
+        contentId: `math-game-${difficulty}-${Date.now()}`, // Temporary ID
+        score: correctAnswers,
+        maxScore: totalProblems,
+        sampleQuizData: mathGameContent, // Backend accepts this for any content type
+      };
+
+      console.log('Submitting math game score:', payload);
+      const response = await apiClient.post('/gamification/submit-score', payload);
+      console.log('Score submission response:', response.data);
+
+      // Play game complete sound
+      playSound('gameComplete');
+      
+      // Show success modal
+      setModalState({
+        isOpen: true,
+        type: 'success',
+        pointsEarned: response.data?.pointsEarned,
+        levelUp: response.data?.levelUp,
+        newLevel: response.data?.newLevel,
+        message: response.data?.pointsEarned 
+          ? undefined 
+          : `You earned points with ${accuracy.toFixed(1)}% accuracy!`,
+      });
+      
+      // Trigger a custom event to refresh progress/leaderboard if those pages are open
+      if (typeof window !== 'undefined') {
+        console.log('Dispatching scoreSubmitted event');
+        window.dispatchEvent(new CustomEvent('scoreSubmitted'));
+      }
+    } catch (error: any) {
       console.error('Failed to submit score:', error);
-      alert('Failed to submit score, but great job!');
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      const errorMessage = error.response?.data?.error || error.response?.data?.details?.[0]?.message || error.message || 'Failed to submit score';
+      
+      // Show error modal
+      setModalState({
+        isOpen: true,
+        type: 'error',
+        errorMessage,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -168,7 +246,12 @@ export default function MathGamePage() {
     if (!user) {
       router.push('/login');
     }
-  }, [user, router]);
+    
+    // Cleanup: stop game music when component unmounts
+    return () => {
+      stopGameMusic();
+    };
+  }, [user, router, stopGameMusic]);
 
   if (!user) {
     return null;
@@ -196,8 +279,29 @@ export default function MathGamePage() {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/dashboard">
-                <Button variant="secondary">Back to Dashboard</Button>
+              <Link href="/dashboard" className="group relative">
+                <div className="relative px-4 py-2 bg-gradient-to-r from-gray-100 via-purple-50 to-pink-50 text-gray-800 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center space-x-2 border-2 border-gray-300 hover:border-purple-400 overflow-hidden">
+                  {/* Animated gradient border on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg blur-sm"></div>
+                  <div className="absolute inset-[2px] bg-gradient-to-r from-gray-100 via-purple-50 to-pink-50 rounded-md group-hover:from-white group-hover:via-purple-100 group-hover:to-pink-100 transition-all duration-500"></div>
+                  
+                  {/* Sparkle effects */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute top-1 left-2 text-purple-400 text-sm animate-pulse" style={{ animationDelay: '0ms' }}>✨</div>
+                    <div className="absolute bottom-1 right-2 text-pink-400 text-sm animate-pulse" style={{ animationDelay: '300ms' }}>⭐</div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10 flex items-center space-x-2">
+                    <span className="text-lg group-hover:-translate-x-1 group-hover:scale-110 transition-all duration-300">←</span>
+                    <span className="group-hover:font-semibold transition-all duration-300">Back to Dashboard</span>
+                  </div>
+                  
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  </div>
+                </div>
               </Link>
             </div>
           </div>
@@ -415,31 +519,106 @@ export default function MathGamePage() {
                 </div>
               )}
             </div>
-            <div className="space-y-3">
-              <Button
-                variant="primary"
-                className="w-full"
+            <div className="space-y-4">
+              <button
                 onClick={submitScore}
-                isLoading={isSubmitting}
+                disabled={isSubmitting}
+                className="relative w-full py-4 px-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 border-2 border-transparent hover:border-white/50 overflow-hidden animate-gradient-shift disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Submit Score
-              </Button>
-              <Button
-                variant="secondary"
-                className="w-full"
+                {/* Animated background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Sparkle effects */}
+                <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute top-2 left-4 text-yellow-300 text-xl animate-ping" style={{ animationDelay: '0ms' }}>✨</div>
+                  <div className="absolute top-2 right-4 text-yellow-300 text-xl animate-ping" style={{ animationDelay: '200ms' }}>⭐</div>
+                  <div className="absolute bottom-2 left-1/4 text-yellow-300 text-xl animate-ping" style={{ animationDelay: '400ms' }}>💫</div>
+                  <div className="absolute bottom-2 right-1/4 text-yellow-300 text-xl animate-ping" style={{ animationDelay: '600ms' }}>✨</div>
+                </div>
+                
+                {/* Content */}
+                <div className="relative z-10 flex items-center justify-center space-x-2">
+                  {isSubmitting ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-2xl hover:rotate-12 hover:scale-125 transition-all duration-300 animate-bounce-slow">📤</span>
+                      <span className="hover:font-bold transition-all duration-300">Submit Score</span>
+                    </>
+                  )}
+                </div>
+                
+                {/* Shine effect */}
+                <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full hover:translate-x-full transition-transform duration-1000"></div>
+                </div>
+              </button>
+              <button
                 onClick={() => setGameState('menu')}
+                className="relative w-full py-4 px-6 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 border-2 border-transparent hover:border-white/50 overflow-hidden animate-gradient-shift"
               >
-                Play Again
-              </Button>
-              <Link href="/dashboard">
-                <Button variant="secondary" className="w-full">
-                  Back to Dashboard
-                </Button>
+                {/* Animated background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Sparkle effects */}
+                <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute top-2 left-4 text-yellow-300 text-xl animate-ping" style={{ animationDelay: '0ms' }}>✨</div>
+                  <div className="absolute top-2 right-4 text-yellow-300 text-xl animate-ping" style={{ animationDelay: '200ms' }}>⭐</div>
+                </div>
+                
+                {/* Content */}
+                <div className="relative z-10 flex items-center justify-center space-x-2">
+                  <span className="text-2xl hover:rotate-12 hover:scale-125 transition-all duration-300 animate-bounce-slow">🎮</span>
+                  <span className="hover:font-bold transition-all duration-300">Play Again</span>
+                </div>
+                
+                {/* Shine effect */}
+                <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full hover:translate-x-full transition-transform duration-1000"></div>
+                </div>
+              </button>
+              <Link href="/dashboard" className="block group relative">
+                <div className="relative w-full py-4 px-6 bg-gradient-to-r from-gray-50 via-purple-50 to-pink-50 text-gray-800 rounded-xl font-semibold text-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 border-2 border-gray-300 hover:border-gradient-to-r hover:from-purple-400 hover:via-pink-400 hover:to-red-400 overflow-hidden">
+                  {/* Animated gradient border on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl blur-sm"></div>
+                  <div className="absolute inset-[2px] bg-gradient-to-r from-gray-50 via-purple-50 to-pink-50 rounded-lg group-hover:from-white group-hover:via-purple-100 group-hover:to-pink-100 transition-all duration-500"></div>
+                  
+                  {/* Sparkle effects */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute top-2 left-6 text-purple-400 text-lg animate-pulse" style={{ animationDelay: '0ms' }}>✨</div>
+                    <div className="absolute bottom-2 right-6 text-pink-400 text-lg animate-pulse" style={{ animationDelay: '300ms' }}>⭐</div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10 flex items-center justify-center space-x-2">
+                    <span className="text-xl group-hover:-translate-x-2 group-hover:scale-125 transition-all duration-300">←</span>
+                    <span className="group-hover:font-bold transition-all duration-300">Back to Dashboard</span>
+                    <span className="text-2xl group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">🏠</span>
+                  </div>
+                </div>
               </Link>
             </div>
           </div>
         )}
       </main>
+
+      {/* Score Submission Modal */}
+      <ScoreSubmissionModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+        type={modalState.type}
+        pointsEarned={modalState.pointsEarned}
+        levelUp={modalState.levelUp}
+        newLevel={modalState.newLevel}
+        message={modalState.message}
+        errorMessage={modalState.errorMessage}
+      />
     </div>
   );
 }

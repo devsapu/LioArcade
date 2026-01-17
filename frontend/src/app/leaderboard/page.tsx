@@ -33,6 +33,8 @@ export default function LeaderboardPage() {
       setError(null);
       
       const contentType = categoryFilter === 'OVERALL' ? undefined : categoryFilter;
+      console.log(`[Leaderboard] Fetching leaderboard - Category: ${categoryFilter}, ContentType: ${contentType}, SortBy: ${sortBy}`);
+      
       const response = await apiClient.get<{ leaderboard: LeaderboardEntry[] }>('/gamification/leaderboard', {
         params: {
           by: sortBy,
@@ -40,14 +42,24 @@ export default function LeaderboardPage() {
           contentType: contentType,
         },
       });
+      
+      console.log(`[Leaderboard] Received ${response.data?.leaderboard?.length || 0} entries`);
+      
       // Ensure we have valid data before setting
       if (response.data && Array.isArray(response.data.leaderboard)) {
         setLeaderboard(response.data.leaderboard);
+        console.log(`[Leaderboard] Leaderboard updated with ${response.data.leaderboard.length} entries`);
       } else {
+        console.warn('[Leaderboard] Invalid response data:', response.data);
         setLeaderboard([]);
       }
     } catch (err: any) {
-      console.error('Failed to fetch leaderboard:', err);
+      console.error('[Leaderboard] Failed to fetch leaderboard:', err);
+      console.error('[Leaderboard] Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+      });
       setError(err.response?.data?.error || 'Failed to load leaderboard');
       setLeaderboard([]); // Set empty array on error
     } finally {
@@ -97,6 +109,7 @@ export default function LeaderboardPage() {
   // Listen for score submission events to refresh leaderboard
   useEffect(() => {
     const handleScoreSubmitted = () => {
+      console.log('Score submitted event received, refreshing leaderboard...');
       fetchLeaderboard();
       fetchChampions();
     };

@@ -88,17 +88,23 @@ const checkBadges = async (userId, points, level) => {
  * Submit score and update gamification
  */
 export const submitScore = async (userId, contentId, score, maxScore) => {
+  console.log(`[submitScore] User: ${userId}, Content: ${contentId}, Score: ${score}/${maxScore}`);
+  
   // Get content to determine type
   const content = await prisma.content.findUnique({
     where: { id: contentId },
   });
 
   if (!content) {
+    console.error(`[submitScore] Content not found: ${contentId}`);
     throw new Error('Content not found');
   }
 
+  console.log(`[submitScore] Content type: ${content.type}, Title: ${content.title}`);
+
   // Calculate points
   const pointsEarned = calculatePoints(content.type, score, maxScore);
+  console.log(`[submitScore] Points earned: ${pointsEarned}`);
 
   // Get existing progress to keep highest score
   const existingProgress = await prisma.userProgress.findUnique({
@@ -141,8 +147,11 @@ export const submitScore = async (userId, contentId, score, maxScore) => {
     throw new Error('Gamification record not found');
   }
 
+  const oldPoints = gamification.points;
   const newPoints = gamification.points + pointsEarned;
   const newLevel = calculateLevel(newPoints);
+  
+  console.log(`[submitScore] Points: ${oldPoints} -> ${newPoints}, Level: ${gamification.level} -> ${newLevel}`);
   
   // Check for new badges
   const newBadges = await checkBadges(userId, newPoints, newLevel);
@@ -173,6 +182,8 @@ export const submitScore = async (userId, contentId, score, maxScore) => {
       badges: uniqueBadges,
     },
   });
+  
+  console.log(`[submitScore] Gamification updated successfully. New points: ${updatedGamification.points}`);
 
   return {
     progress,
@@ -272,6 +283,8 @@ export const getUserProgress = async (userId) => {
  */
 export const getLeaderboard = async (options = {}) => {
   const { limit = 10, by = 'points', contentType } = options;
+  
+  console.log(`[getLeaderboard] Options:`, { limit, by, contentType });
 
   const orderBy = by === 'level' ? { level: 'desc' } : { points: 'desc' };
 
@@ -318,23 +331,46 @@ export const getLeaderboard = async (options = {}) => {
       const userData = userPointsMap.get(userId);
       
       // Calculate points using the same logic as calculatePoints function
-      // We need to estimate maxScore - for now, assume 100 for percentage calculation
-      // In a real scenario, we'd store maxScore in user_progress
       const score = progress.score || 0;
-      const estimatedMaxScore = 100; // Default assumption
-      const percentage = estimatedMaxScore > 0 ? score / estimatedMaxScore : 0;
       
+      // For category leaderboard, we need to recalculate points
+      // Since we don't store maxScore, we'll use reasonable estimates
       let pointsEarned = 0;
       switch (contentType) {
         case 'QUIZ':
-          pointsEarned = Math.round(10 + (percentage * 40)); // 10-50 points
+          // For quizzes, score is typically out of total questions
+          // Estimate: if score is reasonable (1-50), assume it's a percentage
+          // Otherwise, treat score as number of correct answers
+          if (score <= 50 && score > 0) {
+            // Likely a percentage or small number - estimate maxScore
+            const estimatedMaxScore = Math.max(score, 10); // At least 10 questions
+            const percentage = score / estimatedMaxScore;
+            pointsEarned = Math.round(10 + (percentage * 40)); // 10-50 points
+          } else {
+            // Treat as number of correct answers, estimate maxScore
+            const estimatedMaxScore = Math.max(score, 10);
+            const percentage = score / estimatedMaxScore;
+            pointsEarned = Math.round(10 + (percentage * 40));
+          }
           break;
         case 'FLASHCARD':
-          // For flashcards, score represents number of cards, each worth 5 points
+          // For flashcards, score represents number of cards studied
+          // Each card is worth 5 points
           pointsEarned = score * 5;
           break;
         case 'MINI_GAME':
-          pointsEarned = Math.round(20 + (percentage * 80)); // 20-100 points
+          // For games, score could be points earned or percentage
+          // Estimate: if score is high (>100), it might be points already
+          // Otherwise, treat as percentage
+          if (score > 100) {
+            // Likely already points, use directly (but cap at reasonable amount)
+            pointsEarned = Math.min(score, 100);
+          } else {
+            // Treat as percentage or score out of maxScore
+            const estimatedMaxScore = Math.max(score, 10);
+            const percentage = score / estimatedMaxScore;
+            pointsEarned = Math.round(20 + (percentage * 80)); // 20-100 points
+          }
           break;
       }
       

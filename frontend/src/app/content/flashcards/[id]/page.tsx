@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
+import { ScoreSubmissionModal } from '@/components/ScoreSubmissionModal';
+import { useSound } from '@/hooks/useSound';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 import { Content } from '@/types';
@@ -27,6 +29,18 @@ export default function FlashcardPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error';
+    pointsEarned?: number;
+    levelUp?: boolean;
+    newLevel?: number;
+    errorMessage?: string;
+  }>({
+    isOpen: false,
+    type: 'success',
+  });
+  const { playSound, startGameMusic, stopGameMusic } = useSound();
 
   useEffect(() => {
     if (!user) {
@@ -35,7 +49,12 @@ export default function FlashcardPage() {
     }
 
     fetchFlashcardSet();
-  }, [user, router, params.id]);
+    
+    // Cleanup: stop game music when component unmounts
+    return () => {
+      stopGameMusic();
+    };
+  }, [user, router, params.id, stopGameMusic]);
 
   const fetchFlashcardSet = async () => {
     try {
@@ -102,6 +121,8 @@ export default function FlashcardPage() {
         
         setFlashcardSet(sampleSets[setId] || sampleSets['sample-flashcard-1']);
         setGameState('studying');
+        // Start game music when flashcard study starts
+        startGameMusic();
         return;
       }
 
@@ -109,6 +130,8 @@ export default function FlashcardPage() {
       const response = await apiClient.get<Content>(`/content/${setId}`);
       setFlashcardSet(response.data);
       setGameState('studying');
+      // Start game music when flashcard study starts
+      startGameMusic();
     } catch (err: any) {
       console.error('Failed to fetch flashcard set:', err);
       router.push('/content/flashcards');
@@ -121,12 +144,14 @@ export default function FlashcardPage() {
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
+    playSound('click');
   };
 
   const handleKnow = () => {
     if (!isFlipped) return;
     
     setFeedback('correct');
+    playSound('correct');
     if (!studiedCards.includes(currentCardIndex)) {
       setStudiedCards([...studiedCards, currentCardIndex]);
     }
@@ -140,6 +165,7 @@ export default function FlashcardPage() {
     if (!isFlipped) return;
     
     setFeedback('incorrect');
+    playSound('incorrect');
     
     setTimeout(() => {
       moveToNextCard();
@@ -154,6 +180,9 @@ export default function FlashcardPage() {
       setCurrentCardIndex(currentCardIndex + 1);
     } else {
       setGameState('finished');
+      // Stop game music and play victory sound
+      stopGameMusic();
+      playSound('victory');
     }
   };
 
@@ -166,27 +195,64 @@ export default function FlashcardPage() {
       const cardsStudied = studiedCards.length;
       const maxScore = totalCards;
       
-      const response = await apiClient.post('/gamification/submit-score', {
+      // Prepare request payload
+      const payload: any = {
         contentId: flashcardSet.id,
         score: cardsStudied,
         maxScore: maxScore,
-      });
+      };
+      
+      // For sample flashcards, include the flashcard data so backend can create it
+      if (flashcardSet.id.startsWith('sample-flashcard-')) {
+        payload.sampleQuizData = {
+          type: flashcardSet.type,
+          title: flashcardSet.title,
+          description: flashcardSet.description,
+          contentData: flashcardSet.contentData,
+          category: flashcardSet.category,
+          difficultyLevel: flashcardSet.difficultyLevel,
+        };
+      }
+      
+      console.log('Submitting flashcard progress:', payload);
+      const response = await apiClient.post('/gamification/submit-score', payload);
+      console.log('Flashcard submission response:', response.data);
 
       setShowResult(true);
       
-      // Show success message
-      if (response.data?.pointsEarned) {
-        alert(`🎉 Progress submitted! You earned ${response.data.pointsEarned} points! ${response.data.levelUp ? 'Level up! 🚀' : ''}`);
-      }
+      // Play game complete sound
+      playSound('gameComplete');
+      
+      // Show success modal
+      setModalState({
+        isOpen: true,
+        type: 'success',
+        pointsEarned: response.data?.pointsEarned,
+        levelUp: response.data?.levelUp,
+        newLevel: response.data?.newLevel,
+      });
       
       // Trigger a custom event to refresh progress/leaderboard if those pages are open
       if (typeof window !== 'undefined') {
+        console.log('Dispatching scoreSubmitted event');
         window.dispatchEvent(new CustomEvent('scoreSubmitted'));
       }
     } catch (error: any) {
       console.error('Failed to submit progress:', error);
-      const errorMessage = error.response?.data?.error || 'Failed to submit progress';
-      alert(`Error: ${errorMessage}`);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      const errorMessage = error.response?.data?.error || error.response?.data?.details?.[0]?.message || error.message || 'Failed to submit progress';
+      
+      // Show error modal
+      setModalState({
+        isOpen: true,
+        type: 'error',
+        errorMessage,
+      });
+      
       setShowResult(true);
     } finally {
       setIsSubmitting(false);
@@ -212,8 +278,29 @@ export default function FlashcardPage() {
               <span className="text-gray-600">{flashcardSet?.title || 'Flashcards'}</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/content/flashcards">
-                <Button variant="secondary">Back to Flashcards</Button>
+              <Link href="/content/flashcards" className="group relative">
+                <div className="relative px-4 py-2 bg-gradient-to-r from-gray-100 via-green-50 to-emerald-50 text-gray-800 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center space-x-2 border-2 border-gray-300 hover:border-green-400 overflow-hidden">
+                  {/* Animated gradient border on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg blur-sm"></div>
+                  <div className="absolute inset-[2px] bg-gradient-to-r from-gray-100 via-green-50 to-emerald-50 rounded-md group-hover:from-white group-hover:via-green-100 group-hover:to-emerald-100 transition-all duration-500"></div>
+                  
+                  {/* Sparkle effects */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute top-1 left-2 text-green-400 text-sm animate-pulse" style={{ animationDelay: '0ms' }}>✨</div>
+                    <div className="absolute bottom-1 right-2 text-emerald-400 text-sm animate-pulse" style={{ animationDelay: '300ms' }}>⭐</div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10 flex items-center space-x-2">
+                    <span className="text-lg group-hover:-translate-x-1 group-hover:scale-110 transition-all duration-300">←</span>
+                    <span className="group-hover:font-semibold transition-all duration-300">Back to Flashcards</span>
+                  </div>
+                  
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  </div>
+                </div>
               </Link>
             </div>
           </div>
@@ -405,64 +492,171 @@ export default function FlashcardPage() {
         )}
 
         {gameState === 'finished' && (
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto text-center">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-3xl font-bold mb-4">Study Complete!</h2>
-            
-            {!showResult ? (
-              <>
-                <div className="space-y-3 mb-6">
-                  <div className="text-xl">
-                    <span className="font-semibold">Cards Studied:</span> {studiedCards.length}/{totalCards}
-                  </div>
-                  <div className="text-xl">
-                    <span className="font-semibold">Progress:</span> {progress}%
-                  </div>
-                  {studiedCards.length === totalCards && (
-                    <div className="text-2xl text-yellow-600 font-bold">
-                      🏆 Perfect! You studied all cards! 🏆
-                    </div>
-                  )}
-                </div>
-                <Button
-                  variant="primary"
-                  className="w-full mb-3"
-                  onClick={submitProgress}
-                  isLoading={isSubmitting}
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center transform transition-all duration-500 animate-scale-in overflow-hidden">
+            {/* Animated Confetti Background */}
+            <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+              {[...Array(15)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute animate-confetti-fall"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 1.5}s`,
+                    animationDuration: `${2 + Math.random()}s`,
+                  }}
                 >
-                  Submit Progress
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="space-y-3 mb-6">
-                  <div className="text-xl">
-                    <span className="font-semibold">Cards Studied:</span> {studiedCards.length}/{totalCards}
-                  </div>
-                  <div className="text-xl">
-                    <span className="font-semibold">Progress:</span> {progress}%
-                  </div>
-                  <div className="text-lg text-green-600 font-semibold">
-                    ✅ Progress submitted successfully!
-                  </div>
+                  {['🎉', '⭐', '✨', '🎊', '🌟'][Math.floor(Math.random() * 5)]}
                 </div>
-                <div className="space-y-3">
-                  <Link href="/content/flashcards">
-                    <Button variant="primary" className="w-full">
-                      Study Another Set
-                    </Button>
-                  </Link>
-                  <Link href="/dashboard">
-                    <Button variant="secondary" className="w-full">
-                      Back to Dashboard
-                    </Button>
-                  </Link>
+              ))}
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10">
+              {/* Celebration Icon with Animation */}
+              <div className="mb-6 flex justify-center animate-bounce-in">
+                <div className="relative">
+                  <div className="text-7xl animate-bounce-slow">🎴</div>
+                  <div className="absolute inset-0 text-7xl animate-ping opacity-75">🎴</div>
                 </div>
-              </>
-            )}
+              </div>
+
+              {/* Title with Slide-in Animation */}
+              <h2 className="text-4xl font-bold mb-6 text-gray-900 animate-slide-down">
+                Study Complete!
+              </h2>
+              
+              {!showResult ? (
+                <>
+                  {/* Progress Display with Staggered Animation */}
+                  <div className="space-y-4 mb-8 animate-fade-in-up">
+                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-100">
+                      <span className="text-gray-600">Cards Studied:</span>{' '}
+                      <span className="text-primary-600 text-3xl">{studiedCards.length}/{totalCards}</span>
+                    </div>
+                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-200">
+                      <span className="text-gray-600">Progress:</span>{' '}
+                      <span className="text-green-600 text-3xl">{progress}%</span>
+                    </div>
+                    {studiedCards.length === totalCards && (
+                      <div className="text-3xl text-yellow-600 font-bold animate-scale-bounce delay-300 mt-4">
+                        🏆 Perfect! You studied all cards! 🏆
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Submit Button with Enhanced Styling */}
+                  <Button
+                    variant="primary"
+                    className="w-full py-4 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-slide-up delay-400"
+                    onClick={submitProgress}
+                    isLoading={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Submitting...
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center">
+                        <span className="mr-2">📤</span>
+                        Submit Progress
+                      </span>
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {/* Success State with Enhanced Animations */}
+                  <div className="space-y-4 mb-8">
+                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-100">
+                      <span className="text-gray-600">Cards Studied:</span>{' '}
+                      <span className="text-primary-600 text-3xl">{studiedCards.length}/{totalCards}</span>
+                    </div>
+                    <div className="text-2xl font-semibold text-gray-800 animate-slide-up delay-200">
+                      <span className="text-gray-600">Progress:</span>{' '}
+                      <span className="text-green-600 text-3xl">{progress}%</span>
+                    </div>
+                    <div className="flex items-center justify-center space-x-2 text-lg text-green-600 font-semibold animate-slide-up delay-300 mt-4 p-3 bg-green-50 rounded-lg border-2 border-green-200">
+                      <span className="text-2xl animate-bounce">✅</span>
+                      <span>Progress submitted successfully!</span>
+                    </div>
+                  </div>
+                  
+                  {/* Enhanced Action Buttons with Colorful Animations */}
+                  <div className="space-y-4 animate-fade-in-up delay-400">
+                    <Link 
+                      href="/content/flashcards"
+                      className="block group relative"
+                    >
+                      <div className="relative w-full py-4 px-6 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 border-2 border-transparent hover:border-white/50 overflow-hidden animate-gradient-shift">
+                        {/* Animated background gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        
+                        {/* Sparkle effects */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="absolute top-2 left-4 text-yellow-300 text-xl animate-ping" style={{ animationDelay: '0ms' }}>✨</div>
+                          <div className="absolute top-2 right-4 text-yellow-300 text-xl animate-ping" style={{ animationDelay: '200ms' }}>⭐</div>
+                          <div className="absolute bottom-2 left-1/4 text-yellow-300 text-xl animate-ping" style={{ animationDelay: '400ms' }}>💫</div>
+                          <div className="absolute bottom-2 right-1/4 text-yellow-300 text-xl animate-ping" style={{ animationDelay: '600ms' }}>✨</div>
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="relative z-10 flex items-center justify-center space-x-2">
+                          <span className="text-2xl group-hover:rotate-12 group-hover:scale-125 transition-all duration-300 animate-bounce-slow">🎴</span>
+                          <span className="group-hover:font-bold transition-all duration-300">Study Another Set</span>
+                          <span className="text-xl group-hover:translate-x-2 group-hover:scale-125 transition-all duration-300">→</span>
+                        </div>
+                        
+                        {/* Shine effect */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                        </div>
+                      </div>
+                    </Link>
+                    <Link 
+                      href="/dashboard"
+                      className="block group relative"
+                    >
+                      <div className="relative w-full py-4 px-6 bg-gradient-to-r from-gray-50 via-green-50 to-emerald-50 text-gray-800 rounded-xl font-semibold text-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 border-2 border-gray-300 hover:border-gradient-to-r hover:from-green-400 hover:via-emerald-400 hover:to-teal-400 overflow-hidden">
+                        {/* Animated gradient border on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl blur-sm"></div>
+                        <div className="absolute inset-[2px] bg-gradient-to-r from-gray-50 via-green-50 to-emerald-50 rounded-lg group-hover:from-white group-hover:via-green-100 group-hover:to-emerald-100 transition-all duration-500"></div>
+                        
+                        {/* Sparkle effects */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="absolute top-2 left-6 text-green-400 text-lg animate-pulse" style={{ animationDelay: '0ms' }}>✨</div>
+                          <div className="absolute bottom-2 right-6 text-emerald-400 text-lg animate-pulse" style={{ animationDelay: '300ms' }}>⭐</div>
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="relative z-10 flex items-center justify-center space-x-2">
+                          <span className="text-xl group-hover:-translate-x-2 group-hover:scale-125 transition-all duration-300">←</span>
+                          <span className="group-hover:font-bold transition-all duration-300">Back to Dashboard</span>
+                          <span className="text-2xl group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">🏠</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
       </main>
+
+      {/* Score Submission Modal */}
+      <ScoreSubmissionModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+        type={modalState.type}
+        pointsEarned={modalState.pointsEarned}
+        levelUp={modalState.levelUp}
+        newLevel={modalState.newLevel}
+        errorMessage={modalState.errorMessage}
+      />
     </div>
   );
 }

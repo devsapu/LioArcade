@@ -163,6 +163,9 @@ export default function FlashcardsPage() {
                 key={flashcard.id}
                 href={`/content/flashcards/${flashcard.id}`}
                 className="group block"
+                onClick={(e) => {
+                  console.log(`[Flashcards] Clicked flashcard: ${flashcard.id}, navigating to: /content/flashcards/${flashcard.id}`);
+                }}
               >
                 <div className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden h-full">
                   <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 text-white">

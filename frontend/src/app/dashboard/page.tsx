@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
+import { InteractiveCharacter } from '@/components/InteractiveCharacter';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 import { ProgressResponse } from '@/types';
@@ -21,6 +22,7 @@ export default function DashboardPage() {
     quizzes: 0,
     flashcards: 0,
   });
+  const [activeCard, setActiveCard] = useState<'games' | 'quizzes' | 'flashcards' | null>(null);
 
   useEffect(() => {
     // Wait for hydration before checking auth
@@ -206,10 +208,19 @@ export default function DashboardPage() {
           )}
 
           {/* Main Category Tiles - Games, Quizzes, Flashcards */}
-          <div className="mb-8">
+          <div className="mb-8 relative">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Explore Learning Content</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="animate-tile-enter" style={{ animationDelay: '0ms' }}>
+              <div 
+                className="animate-tile-enter" 
+                style={{ animationDelay: '0ms' }}
+                onMouseEnter={() => setActiveCard('games')}
+                onMouseLeave={() => setTimeout(() => setActiveCard(null), 5000)}
+                onClick={() => {
+                  setActiveCard('games');
+                  setTimeout(() => setActiveCard(null), 5000);
+                }}
+              >
                 <CategoryTile
                   title="Games"
                   description="Learn through play! Challenge yourself with fun, educational games and earn points as you progress."
@@ -223,7 +234,16 @@ export default function DashboardPage() {
                   itemLabel={contentCounts.games === 1 ? 'game' : 'games'}
                 />
               </div>
-              <div className="animate-tile-enter" style={{ animationDelay: '150ms' }}>
+              <div 
+                className="animate-tile-enter" 
+                style={{ animationDelay: '150ms' }}
+                onMouseEnter={() => setActiveCard('quizzes')}
+                onMouseLeave={() => setTimeout(() => setActiveCard(null), 5000)}
+                onClick={() => {
+                  setActiveCard('quizzes');
+                  setTimeout(() => setActiveCard(null), 5000);
+                }}
+              >
                 <CategoryTile
                   title="Quizzes"
                   description="Test your knowledge with interactive quizzes. Get instant feedback and track your progress over time."
@@ -237,7 +257,16 @@ export default function DashboardPage() {
                   itemLabel={contentCounts.quizzes === 1 ? 'quiz' : 'quizzes'}
                 />
               </div>
-              <div className="animate-tile-enter" style={{ animationDelay: '300ms' }}>
+              <div 
+                className="animate-tile-enter" 
+                style={{ animationDelay: '300ms' }}
+                onMouseEnter={() => setActiveCard('flashcards')}
+                onMouseLeave={() => setTimeout(() => setActiveCard(null), 5000)}
+                onClick={() => {
+                  setActiveCard('flashcards');
+                  setTimeout(() => setActiveCard(null), 5000);
+                }}
+              >
                 <CategoryTile
                   title="Flashcards"
                   description="Study efficiently with spaced repetition. Master new concepts through interactive flashcard sessions."
@@ -290,6 +319,12 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+
+      {/* Interactive Character */}
+      <InteractiveCharacter 
+        targetCard={activeCard}
+        onAnimationComplete={() => setActiveCard(null)}
+      />
     </div>
   );
 }

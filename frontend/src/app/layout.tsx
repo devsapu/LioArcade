@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
+import { SoundControls } from '@/components/SoundControls'
 
 export const metadata: Metadata = {
   title: 'LioArcade - Gamified Learning Platform',
@@ -15,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <SoundControls />
+        </AuthProvider>
       </body>
     </html>
   )
