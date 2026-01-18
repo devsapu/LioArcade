@@ -183,17 +183,18 @@ export default function ProfilePage() {
                         id="profile-image-input"
                         disabled={isUploading}
                       />
-                      <label htmlFor="profile-image-input">
-                        <Button
-                          variant="primary"
-                          as="span"
-                          isLoading={isUploading}
-                          disabled={isUploading}
-                          className="cursor-pointer"
-                        >
-                          {displayUser.profileImage ? 'Change Image' : 'Upload Image'}
-                        </Button>
-                      </label>
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          if (!isUploading && fileInputRef.current) {
+                            fileInputRef.current.click();
+                          }
+                        }}
+                        isLoading={isUploading}
+                        disabled={isUploading}
+                      >
+                        {displayUser.profileImage ? 'Change Image' : 'Upload Image'}
+                      </Button>
                       {displayUser.profileImage && (
                         <Button
                           variant="secondary"
