@@ -1,0 +1,115 @@
+// Prisma Schema for LioArcade Gamified Learning Platform
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Roles
+enum UserRole {
+  LEARNER
+  ADMIN
+  CONTENT_MANAGER
+}
+
+// Content Types
+enum ContentType {
+  QUIZ
+  FLASHCARD
+  MINI_GAME
+}
+
+// Difficulty Levels
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+// User Model
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  username      String    @unique
+  passwordHash  String    @map("password_hash")
+  profileImage  String?   @map("profile_image")
+  role          UserRole  @default(LEARNER)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  contentCreated Content[]        @relation("ContentCreator")
+  progress        UserProgress[]
+  gamification    Gamification?
+
+  @@map("users")
+}
+
+// Content Model
+model Content {
+  id            String          @id @default(uuid())
+  type          ContentType
+  title         String
+  description   String?
+  contentData   Json            @map("content_data") // Flexible JSON structure for different content types
+  category      String?
+  difficultyLevel DifficultyLevel? @map("difficulty_level")
+  createdById   String          @map("created_by_id")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  createdBy     User            @relation("ContentCreator", fields: [createdById], references: [id])
+  progress      UserProgress[]
+
+  @@index([type])
+  @@index([category])
+  @@index([createdById])
+  @@map("content")
+}
+
+// User Progress Model
+model UserProgress {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  contentId   String    @map("content_id")
+  score       Int?
+  completedAt DateTime? @map("completed_at")
+  attempts    Int       @default(1)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content     Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@index([userId])
+  @@index([contentId])
+  @@map("user_progress")
+}
+
+// Gamification Model
+model Gamification {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  points    Int      @default(0)
+  badges    Json     @default("[]") // Array of badge objects
+  level     Int      @default(1)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([points])
+  @@index([level])
+  @@map("gamification")
+}
+
+
+
