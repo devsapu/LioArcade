@@ -7,6 +7,7 @@ import { Button } from '@/components/Button';
 import { InteractiveCharacter } from '@/components/InteractiveCharacter';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UsernameDisplay } from '@/components/UsernameDisplay';
+import { Logo } from '@/components/Logo';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 import { ProgressResponse } from '@/types';
@@ -143,7 +144,7 @@ export default function DashboardPage() {
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-3">
               <ThemeToggle />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">LioArcade</h1>
+              <Logo size="md" href="/dashboard" />
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/profile" className="flex items-center space-x-3 transition-all duration-300 group hover:scale-105">
