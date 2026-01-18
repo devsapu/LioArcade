@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
+import { SocialShare } from '@/components/SocialShare';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 import { LeaderboardEntry } from '@/types';
@@ -162,7 +163,7 @@ export default function LeaderboardPage() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
               🏆 {categoryFilter === 'OVERALL' ? 'Overall' : 
@@ -175,9 +176,21 @@ export default function LeaderboardPage() {
                 : `See how you rank in ${categoryFilter === 'QUIZ' ? 'quizzes' : categoryFilter === 'FLASHCARD' ? 'flashcards' : 'mini-games'}`}
             </p>
           </div>
-          <Button variant="secondary" onClick={() => { fetchLeaderboard(); fetchChampions(); }} disabled={isLoading}>
-            {isLoading ? 'Refreshing...' : '🔄 Refresh'}
-          </Button>
+          <div className="flex items-center space-x-3">
+            {userEntry && userRank && (
+              <SocialShare
+                title={`My Leaderboard Position on LioArcade`}
+                text={`🏆 Check out my leaderboard position on LioArcade!`}
+                position={userRank}
+                level={userEntry.level}
+                username={user?.username}
+                achievementType="leaderboard"
+              />
+            )}
+            <Button variant="secondary" onClick={() => { fetchLeaderboard(); fetchChampions(); }} disabled={isLoading}>
+              {isLoading ? 'Refreshing...' : '🔄 Refresh'}
+            </Button>
+          </div>
         </div>
 
         {/* Champion Cards */}

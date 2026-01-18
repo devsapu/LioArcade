@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
+import { SocialShare } from '@/components/SocialShare';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 import { ProgressResponse } from '@/types';
@@ -97,14 +98,28 @@ export default function ProgressPage() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">📊 Your Progress</h1>
             <p className="text-gray-600 dark:text-gray-300 text-lg">Track your learning journey and achievements</p>
           </div>
-          <Button variant="secondary" onClick={fetchProgress} disabled={isLoading}>
-            {isLoading ? 'Refreshing...' : '🔄 Refresh'}
-          </Button>
+          <div className="flex items-center space-x-3">
+            {progress && user && (
+              <SocialShare
+                title="My Learning Progress on LioArcade"
+                text={`📊 Check out my learning progress on LioArcade!`}
+                level={progress.gamification.level}
+                badge={Array.isArray(progress.gamification.badges) && progress.gamification.badges.length > 0 
+                  ? progress.gamification.badges[0].name 
+                  : undefined}
+                username={user.username}
+                achievementType="progress"
+              />
+            )}
+            <Button variant="secondary" onClick={fetchProgress} disabled={isLoading}>
+              {isLoading ? 'Refreshing...' : '🔄 Refresh'}
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (

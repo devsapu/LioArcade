@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
 import { ScoreSubmissionModal } from '@/components/ScoreSubmissionModal';
+import { SocialShare } from '@/components/SocialShare';
 import { useSound } from '@/hooks/useSound';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
@@ -519,6 +520,19 @@ export default function MathGamePage() {
                 </div>
               )}
             </div>
+            
+            {/* Social Share Button */}
+            <div className="mb-6 flex justify-center">
+              <SocialShare
+                title="Math Challenge Completed"
+                text={`🧮 I just completed a math challenge on LioArcade!`}
+                score={correctAnswers}
+                total={totalProblems}
+                username={user?.username}
+                achievementType="game"
+              />
+            </div>
+            
             <div className="space-y-4">
               <button
                 onClick={submitScore}

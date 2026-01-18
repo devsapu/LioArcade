@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
 import { ScoreSubmissionModal } from '@/components/ScoreSubmissionModal';
+import { SocialShare } from '@/components/SocialShare';
 import { useSound } from '@/hooks/useSound';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
@@ -584,6 +585,20 @@ export default function FlashcardPage() {
                       <span>Progress submitted successfully!</span>
                     </div>
                   </div>
+                  
+                  {/* Social Share Button */}
+                  {showResult && (
+                    <div className="mb-6 flex justify-center animate-fade-in-up delay-300">
+                      <SocialShare
+                        title={`Flashcards Completed: ${flashcardSet?.title || 'Flashcards'}`}
+                        text={`🎴 I just studied flashcards on LioArcade!`}
+                        score={studiedCards.length}
+                        total={totalCards}
+                        username={user?.username}
+                        achievementType="flashcard"
+                      />
+                    </div>
+                  )}
                   
                   {/* Enhanced Action Buttons with Colorful Animations */}
                   <div className="space-y-4 animate-fade-in-up delay-400">

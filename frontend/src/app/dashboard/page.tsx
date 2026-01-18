@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
 import { InteractiveCharacter } from '@/components/InteractiveCharacter';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { UsernameDisplay } from '@/components/UsernameDisplay';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 import { ProgressResponse } from '@/types';
@@ -14,7 +15,7 @@ import { Avatar } from '@/components/Avatar';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, logout, hasHydrated } = useAuthStore();
+  const { user, logout, hasHydrated, fetchUserProfile } = useAuthStore();
   const redirectingRef = useRef(false);
   const [progress, setProgress] = useState<ProgressResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,11 +38,15 @@ export default function DashboardPage() {
       return;
     }
 
-    // Fetch progress when user is available and hydrated
+    // Fetch progress and user profile when user is available and hydrated
     if (user && hasHydrated) {
       fetchProgress();
+      // Fetch fresh user profile to ensure username is available
+      if (!user.username) {
+        fetchUserProfile();
+      }
     }
-  }, [user, hasHydrated]); // Removed router and progress from deps
+  }, [user, hasHydrated, fetchUserProfile]); // Removed router and progress from deps
 
   const fetchProgress = async () => {
     if (isLoading === false) {
@@ -141,11 +146,16 @@ export default function DashboardPage() {
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">LioArcade</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/profile" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-                <Avatar src={user.profileImage} username={user.username} size="sm" />
-                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                  {user.username}
-                </span>
+              <Link href="/profile" className="flex items-center space-x-3 transition-all duration-300 group hover:scale-105">
+                <div className="relative group-hover:ring-2 group-hover:ring-purple-400 group-hover:ring-offset-2 rounded-full transition-all duration-300">
+                  <Avatar src={user.profileImage} username={user.username} size="sm" />
+                  <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 rounded-full opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-300"></div>
+                </div>
+                {user?.username ? (
+                  <UsernameDisplay username={user.username} />
+                ) : (
+                  <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">User</span>
+                )}
               </Link>
               <Button variant="secondary" onClick={logout}>
                 Logout
@@ -174,13 +184,15 @@ export default function DashboardPage() {
               
               {/* Content */}
               <div className="relative z-10">
-                <h2 className="text-4xl font-bold mb-2 animate-slide-down">
+                <h2 className="text-4xl font-bold mb-2 animate-slide-down flex items-center flex-wrap gap-2">
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                     Welcome back,
-                  </span>{' '}
-                  <span className="inline-block bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 bg-clip-text text-transparent animate-bounce-slow">
-                    {user.username}
                   </span>
+                  {user?.username ? (
+                    <UsernameDisplay username={user.username} className="text-4xl" />
+                  ) : (
+                    <span className="text-4xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">User</span>
+                  )}
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">!</span>
                 </h2>
                 <p className="text-lg text-gray-700 dark:text-gray-300 font-medium animate-slide-up delay-100">
