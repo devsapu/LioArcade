@@ -13,6 +13,7 @@ interface AchievementPostProps {
   position?: number;
   achievementType: 'quiz' | 'flashcard' | 'game' | 'progress' | 'leaderboard';
   onImageGenerated?: (imageUrl: string) => void;
+  hideButtons?: boolean;
 }
 
 export function AchievementPost({
@@ -25,6 +26,7 @@ export function AchievementPost({
   position,
   achievementType,
   onImageGenerated,
+  hideButtons = false,
 }: AchievementPostProps) {
   const postRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -79,14 +81,18 @@ export function AchievementPost({
   }, [onImageGenerated]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      generateImage();
-    }, 500);
+    // Only auto-generate if buttons are shown (standalone mode)
+    // When hideButtons is true, parent component handles image generation
+    if (!hideButtons) {
+      const timer = setTimeout(() => {
+        generateImage();
+      }, 800);
 
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [generateImage]);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [generateImage, hideButtons]);
 
   return (
     <div className="space-y-4">
@@ -180,52 +186,54 @@ export function AchievementPost({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        {generatedImage && (
-          <>
-            <a
-              href={generatedImage}
-              download={`lioarcade-achievement-${Date.now()}.png`}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-center"
-            >
-              📥 Download Image
-            </a>
-            <button
-              onClick={async () => {
-                if (navigator.share && generatedImage) {
-                  try {
-                    const response = await fetch(generatedImage);
-                    const blob = await response.blob();
-                    const file = new File([blob], 'achievement.png', { type: 'image/png' });
-                    await navigator.share({
-                      title: title,
-                      text: 'Check out my achievement on LioArcade!',
-                      files: [file],
-                    });
-                  } catch (error) {
-                    console.error('Share failed:', error);
+      {!hideButtons && (
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          {generatedImage && (
+            <>
+              <a
+                href={generatedImage}
+                download={`lioarcade-achievement-${Date.now()}.png`}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-center"
+              >
+                📥 Download Image
+              </a>
+              <button
+                onClick={async () => {
+                  if (navigator.share && generatedImage) {
+                    try {
+                      const response = await fetch(generatedImage);
+                      const blob = await response.blob();
+                      const file = new File([blob], 'achievement.png', { type: 'image/png' });
+                      await navigator.share({
+                        title: title,
+                        text: 'Check out my achievement on LioArcade!',
+                        files: [file],
+                      });
+                    } catch (error) {
+                      console.error('Share failed:', error);
+                    }
+                  } else if (generatedImage) {
+                    try {
+                      await navigator.clipboard.writeText(generatedImage);
+                      alert('Image copied to clipboard!');
+                    } catch (error) {
+                      console.error('Copy failed:', error);
+                    }
                   }
-                } else if (generatedImage) {
-                  try {
-                    await navigator.clipboard.writeText(generatedImage);
-                    alert('Image copied to clipboard!');
-                  } catch (error) {
-                    console.error('Copy failed:', error);
-                  }
-                }
-              }}
-              className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-            >
-              📤 Share Image
-            </button>
-          </>
-        )}
-        {isGenerating && (
-          <div className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg font-semibold text-center">
-            Generating image...
-          </div>
-        )}
-      </div>
+                }}
+                className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                📤 Share Image
+              </button>
+            </>
+          )}
+          {isGenerating && (
+            <div className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg font-semibold text-center">
+              Generating image...
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

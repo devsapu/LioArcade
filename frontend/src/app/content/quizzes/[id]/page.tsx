@@ -545,18 +545,23 @@ export default function QuizPage() {
                     </div>
                   </div>
                   
-                  {/* Social Share Button */}
+                  {/* Social Share Section */}
                   {showResult && (
-                    <div className="mb-6 flex justify-center animate-fade-in-up delay-300">
-                      <SocialShare
-                        title={`Quiz Completed: ${quiz?.title || 'Quiz'}`}
-                        text={`🎉 I just completed a quiz on LioArcade!`}
-                        score={score}
-                        total={totalQuestions}
-                        level={modalState.newLevel}
-                        username={user?.username}
-                        achievementType="quiz"
-                      />
+                    <div className="mb-6 space-y-4 animate-fade-in-up delay-300">
+                      <div className="flex justify-center">
+                        <SocialShare
+                          title={`Quiz Completed: ${quiz?.title || 'Quiz'}`}
+                          text={`🎉 I just completed a quiz on LioArcade!`}
+                          score={score}
+                          total={totalQuestions}
+                          level={modalState.newLevel}
+                          username={user?.username}
+                          achievementType="quiz"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                        💡 Create a branded post to share your achievement with an eye-catching image!
+                      </p>
                     </div>
                   )}
                   
