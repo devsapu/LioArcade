@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/Button';
 import { Avatar } from '@/components/Avatar';
+import { Logo } from '@/components/Logo';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 import { User } from '@/types';
@@ -128,11 +129,9 @@ export default function ProfilePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Link href="/dashboard">
-                <h1 className="text-xl font-bold text-gray-900">LioArcade</h1>
-              </Link>
+              <Logo size="md" href="/dashboard" />
               <span className="text-gray-400">/</span>
-              <span className="text-gray-600">Profile</span>
+              <span className="text-gray-600 dark:text-gray-300">Profile</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/dashboard">
@@ -183,17 +182,18 @@ export default function ProfilePage() {
                         id="profile-image-input"
                         disabled={isUploading}
                       />
-                      <label htmlFor="profile-image-input">
-                        <Button
-                          variant="primary"
-                          as="span"
-                          isLoading={isUploading}
-                          disabled={isUploading}
-                          className="cursor-pointer"
-                        >
-                          {displayUser.profileImage ? 'Change Image' : 'Upload Image'}
-                        </Button>
-                      </label>
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          if (!isUploading && fileInputRef.current) {
+                            fileInputRef.current.click();
+                          }
+                        }}
+                        isLoading={isUploading}
+                        disabled={isUploading}
+                      >
+                        {displayUser.profileImage ? 'Change Image' : 'Upload Image'}
+                      </Button>
                       {displayUser.profileImage && (
                         <Button
                           variant="secondary"

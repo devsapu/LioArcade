@@ -10,7 +10,7 @@ const calculatePoints = (contentType, score, maxScore) => {
     case 'QUIZ':
       return Math.round(10 + (percentage * 40)); // 10-50 points
     case 'FLASHCARD':
-      return 5; // Fixed 5 points per card
+      return score * 5; // 5 points per card studied
     case 'MINI_GAME':
       return Math.round(20 + (percentage * 80)); // 20-100 points
     default:
@@ -88,17 +88,33 @@ const checkBadges = async (userId, points, level) => {
  * Submit score and update gamification
  */
 export const submitScore = async (userId, contentId, score, maxScore) => {
+  console.log(`[submitScore] User: ${userId}, Content: ${contentId}, Score: ${score}/${maxScore}`);
+  
   // Get content to determine type
   const content = await prisma.content.findUnique({
     where: { id: contentId },
   });
 
   if (!content) {
+    console.error(`[submitScore] Content not found: ${contentId}`);
     throw new Error('Content not found');
   }
 
+  console.log(`[submitScore] Content type: ${content.type}, Title: ${content.title}`);
+
   // Calculate points
   const pointsEarned = calculatePoints(content.type, score, maxScore);
+  console.log(`[submitScore] Points earned: ${pointsEarned}`);
+
+  // Get existing progress to keep highest score
+  const existingProgress = await prisma.userProgress.findUnique({
+    where: {
+      userId_contentId: {
+        userId,
+        contentId,
+      },
+    },
+  });
 
   // Update or create user progress
   const progress = await prisma.userProgress.upsert({
@@ -109,7 +125,7 @@ export const submitScore = async (userId, contentId, score, maxScore) => {
       },
     },
     update: {
-      score: Math.max(score, undefined), // Keep highest score
+      score: existingProgress && existingProgress.score ? Math.max(score, existingProgress.score) : score,
       attempts: { increment: 1 },
       completedAt: new Date(),
     },
@@ -131,12 +147,26 @@ export const submitScore = async (userId, contentId, score, maxScore) => {
     throw new Error('Gamification record not found');
   }
 
+  const oldPoints = gamification.points;
   const newPoints = gamification.points + pointsEarned;
   const newLevel = calculateLevel(newPoints);
   
+  console.log(`[submitScore] Points: ${oldPoints} -> ${newPoints}, Level: ${gamification.level} -> ${newLevel}`);
+  
   // Check for new badges
   const newBadges = await checkBadges(userId, newPoints, newLevel);
-  const existingBadges = Array.isArray(gamification.badges) ? gamification.badges : [];
+  
+  // Ensure badges is an array (Prisma JSON field)
+  let existingBadges = [];
+  if (gamification.badges) {
+    if (Array.isArray(gamification.badges)) {
+      existingBadges = gamification.badges;
+    } else if (typeof gamification.badges === 'object') {
+      // Handle case where badges might be stored as object
+      existingBadges = Object.values(gamification.badges);
+    }
+  }
+  
   const allBadges = [...existingBadges, ...newBadges];
   
   // Remove duplicates based on badge name
@@ -152,6 +182,8 @@ export const submitScore = async (userId, contentId, score, maxScore) => {
       badges: uniqueBadges,
     },
   });
+  
+  console.log(`[submitScore] Gamification updated successfully. New points: ${updatedGamification.points}`);
 
   return {
     progress,
@@ -181,7 +213,10 @@ export const getUserProgress = async (userId) => {
           },
         },
       },
-      orderBy: { completedAt: 'desc' },
+      orderBy: [
+        { completedAt: 'desc' }, // Prioritize completed items
+        { updatedAt: 'desc' }, // Fallback to updatedAt
+      ],
       take: 20, // Recent 20 activities
     }),
   ]);
@@ -195,12 +230,7 @@ export const getUserProgress = async (userId) => {
     where: { userId },
   });
 
-  const byType = await prisma.userProgress.groupBy({
-    by: ['contentId'],
-    where: { userId },
-    _count: true,
-  });
-
+  // Get all progress records with content type for statistics
   const contentTypes = await prisma.userProgress.findMany({
     where: { userId },
     include: {
@@ -212,18 +242,38 @@ export const getUserProgress = async (userId) => {
     },
   });
 
+  // Calculate statistics by content type
   const typeStats = contentTypes.reduce((acc, p) => {
-    const type = p.content.type;
-    acc[type] = (acc[type] || 0) + 1;
+    if (p.content && p.content.type) {
+      const type = p.content.type;
+      acc[type] = (acc[type] || 0) + 1;
+    }
     return acc;
   }, {});
+  
+  // Ensure all content types are represented
+  const defaultStats = { QUIZ: 0, FLASHCARD: 0, MINI_GAME: 0 };
+  const finalTypeStats = { ...defaultStats, ...typeStats };
+
+  // Ensure badges is an array
+  let badges = [];
+  if (gamification.badges) {
+    if (Array.isArray(gamification.badges)) {
+      badges = gamification.badges;
+    } else if (typeof gamification.badges === 'object') {
+      badges = Object.values(gamification.badges);
+    }
+  }
 
   return {
-    gamification,
+    gamification: {
+      ...gamification,
+      badges,
+    },
     recentProgress: progress,
     statistics: {
       totalCompleted,
-      byType: typeStats,
+      byType: finalTypeStats,
     },
   };
 };
@@ -232,10 +282,151 @@ export const getUserProgress = async (userId) => {
  * Get leaderboard
  */
 export const getLeaderboard = async (options = {}) => {
-  const { limit = 10, by = 'points' } = options;
+  const { limit = 10, by = 'points', contentType } = options;
+  
+  console.log(`[getLeaderboard] Options:`, { limit, by, contentType });
 
   const orderBy = by === 'level' ? { level: 'desc' } : { points: 'desc' };
 
+  // If filtering by content type, we need to calculate points from that type only
+  if (contentType) {
+    // Get all users with their progress for the specific content type
+    const userProgressByType = await prisma.userProgress.findMany({
+      where: {
+        content: {
+          type: contentType,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            profileImage: true,
+          },
+        },
+        content: {
+          select: {
+            type: true,
+          },
+        },
+      },
+    });
+
+    // Calculate points per user for this content type using the same logic as submitScore
+    const userPointsMap = new Map();
+    
+    for (const progress of userProgressByType) {
+      const userId = progress.userId;
+      if (!userPointsMap.has(userId)) {
+        userPointsMap.set(userId, {
+          user: progress.user,
+          points: 0,
+          level: 1,
+          badges: [],
+        });
+      }
+      
+      const userData = userPointsMap.get(userId);
+      
+      // Calculate points using the same logic as calculatePoints function
+      const score = progress.score || 0;
+      
+      // For category leaderboard, we need to recalculate points
+      // Since we don't store maxScore, we'll use reasonable estimates
+      let pointsEarned = 0;
+      switch (contentType) {
+        case 'QUIZ':
+          // For quizzes, score is typically out of total questions
+          // Estimate: if score is reasonable (1-50), assume it's a percentage
+          // Otherwise, treat score as number of correct answers
+          if (score <= 50 && score > 0) {
+            // Likely a percentage or small number - estimate maxScore
+            const estimatedMaxScore = Math.max(score, 10); // At least 10 questions
+            const percentage = score / estimatedMaxScore;
+            pointsEarned = Math.round(10 + (percentage * 40)); // 10-50 points
+          } else {
+            // Treat as number of correct answers, estimate maxScore
+            const estimatedMaxScore = Math.max(score, 10);
+            const percentage = score / estimatedMaxScore;
+            pointsEarned = Math.round(10 + (percentage * 40));
+          }
+          break;
+        case 'FLASHCARD':
+          // For flashcards, score represents number of cards studied
+          // Each card is worth 5 points
+          pointsEarned = score * 5;
+          break;
+        case 'MINI_GAME':
+          // For games, score could be points earned or percentage
+          // Estimate: if score is high (>100), it might be points already
+          // Otherwise, treat as percentage
+          if (score > 100) {
+            // Likely already points, use directly (but cap at reasonable amount)
+            pointsEarned = Math.min(score, 100);
+          } else {
+            // Treat as percentage or score out of maxScore
+            const estimatedMaxScore = Math.max(score, 10);
+            const percentage = score / estimatedMaxScore;
+            pointsEarned = Math.round(20 + (percentage * 80)); // 20-100 points
+          }
+          break;
+      }
+      
+      userData.points += pointsEarned;
+    }
+
+    // Get gamification data for level and badges
+    const userIds = Array.from(userPointsMap.keys());
+    const gamificationData = await prisma.gamification.findMany({
+      where: {
+        userId: { in: userIds },
+      },
+    });
+
+    // Merge gamification data
+    const leaderboardData = Array.from(userPointsMap.entries()).map(([userId, data]) => {
+      const gamification = gamificationData.find(g => g.userId === userId);
+      return {
+        userId,
+        user: data.user,
+        points: data.points, // Points from this content type only
+        level: gamification?.level || 1,
+        badges: gamification?.badges || [],
+      };
+    });
+
+    // Sort and limit
+    leaderboardData.sort((a, b) => {
+      if (by === 'level') {
+        return b.level - a.level || b.points - a.points;
+      }
+      return b.points - a.points || b.level - a.level;
+    });
+
+    return leaderboardData.slice(0, limit).map((entry, index) => {
+      // Ensure badges is an array
+      let badges = [];
+      if (entry.badges) {
+        if (Array.isArray(entry.badges)) {
+          badges = entry.badges;
+        } else if (typeof entry.badges === 'object') {
+          badges = Object.values(entry.badges);
+        }
+      }
+
+      return {
+        rank: index + 1,
+        user: entry.user,
+        points: entry.points,
+        level: entry.level,
+        badges,
+      };
+    });
+  }
+
+  // Overall leaderboard (no content type filter)
   const leaderboard = await prisma.gamification.findMany({
     orderBy,
     take: limit,
@@ -251,13 +442,25 @@ export const getLeaderboard = async (options = {}) => {
     },
   });
 
-  return leaderboard.map((entry, index) => ({
-    rank: index + 1,
-    user: entry.user,
-    points: entry.points,
-    level: entry.level,
-    badges: entry.badges,
-  }));
+  return leaderboard.map((entry, index) => {
+    // Ensure badges is an array
+    let badges = [];
+    if (entry.badges) {
+      if (Array.isArray(entry.badges)) {
+        badges = entry.badges;
+      } else if (typeof entry.badges === 'object') {
+        badges = Object.values(entry.badges);
+      }
+    }
+
+    return {
+      rank: index + 1,
+      user: entry.user,
+      points: entry.points,
+      level: entry.level,
+      badges,
+    };
+  });
 };
 
 

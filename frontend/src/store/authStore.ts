@@ -13,6 +13,7 @@ interface AuthState {
   setHasHydrated: (state: boolean) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, username: string, password: string, role?: string) => Promise<void>;
+  fetchUserProfile: () => Promise<void>;
   logout: () => void;
   clearError: () => void;
 }
@@ -124,6 +125,25 @@ export const useAuthStore = create<AuthState>()(
             refreshToken: null,
           });
           throw error;
+        }
+      },
+
+      fetchUserProfile: async () => {
+        try {
+          const response = await apiClient.get<{ user: User }>('/user/profile');
+          const user = response.data.user;
+          
+          set((state) => ({
+            user: {
+              ...state.user,
+              ...user,
+            },
+          }));
+          
+          console.log('User profile fetched:', user.username);
+        } catch (error: any) {
+          console.error('Failed to fetch user profile:', error);
+          // Don't throw - just log the error
         }
       },
 

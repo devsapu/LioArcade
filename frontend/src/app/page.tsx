@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import { Button } from '@/components/Button';
+import { Logo } from '@/components/Logo';
 
 export default function Home() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">LioArcade</h1>
+              <Logo size="md" />
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/login">
@@ -43,6 +44,9 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-16">
+          <div className="mb-6 flex justify-center">
+            <Logo size="xl" />
+          </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
             Welcome to LioArcade
           </h1>
