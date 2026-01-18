@@ -119,34 +119,38 @@ export function InteractiveCharacter({ targetCard, onAnimationComplete }: Intera
           transform: 'translate(-50%, -50%)',
         }}
       >
-        {/* Speech Bubble */}
+        {/* Speech Bubble - Positioned first so it appears above character */}
         {showSpeechBubble && (
-          <div className={`absolute mb-2 animate-bounce-in ${
-            !targetCard 
-              ? '-top-20 left-1/2 transform -translate-x-1/2' 
-              : '-top-20 left-1/2 transform -translate-x-1/2'
-          }`}>
-            <div className="bg-white rounded-2xl shadow-2xl p-4 max-w-xs border-2 border-primary-300 relative">
+          <div 
+            className={`absolute animate-bounce-in z-[100] ${
+              !targetCard 
+                ? '-top-28 left-1/2 transform -translate-x-1/2' 
+                : '-top-28 left-1/2 transform -translate-x-1/2'
+            }`}
+            style={{ zIndex: 100 }}
+          >
+            <div className="bg-white rounded-2xl shadow-2xl p-4 max-w-xs border-2 border-primary-300 relative z-[100]">
               <div className="text-sm font-medium text-gray-800 leading-relaxed">
                 {speechText}
               </div>
               {/* Speech bubble tail */}
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full z-[100]">
                 <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-primary-300"></div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Character (Friendly Teacher/Teddy) */}
+        {/* Character (Friendly Teacher/Teddy) - Lower z-index so speech bubble appears above */}
         <div
-          className={`relative transition-all duration-500 ${
+          className={`relative transition-all duration-500 z-10 ${
             characterState === 'running' ? 'animate-run' :
             characterState === 'pointing' ? 'animate-point' :
             characterState === 'celebrating' ? 'animate-celebrate' :
             characterState === 'thinking' ? 'animate-think' :
             'animate-idle'
           }`}
+          style={{ zIndex: 10 }}
         >
           {/* Main Character Body */}
           <div className="text-8xl relative">
