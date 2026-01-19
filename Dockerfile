@@ -18,5 +18,5 @@ COPY backend/ .
 # Expose port
 EXPOSE 3001
 
-# Start server
-CMD ["npm", "start"]
+# Start server (runs migrations first)
+CMD ["npm", "run", "deploy"]
