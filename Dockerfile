@@ -18,5 +18,9 @@ COPY backend/ .
 # Expose port
 EXPOSE 3001
 
+# Copy startup script
+COPY backend/start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 # Start server (runs migrations first)
-CMD ["npm", "run", "deploy"]
+CMD ["./start.sh"]
