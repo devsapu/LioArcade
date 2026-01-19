@@ -1,0 +1,10 @@
+{
+  "DATABASE_URL": "postgresql://postgres:zsbiupulreRZAgczNKJtxygHnYIotLmp@postgres.railway.internal:5432/railway",
+  "JWT_SECRET": "051b0c5fb275d9c8b6eeca83266455fae4f64a160257fbab7bc466fa087c0fd1",
+  "JWT_REFRESH_SECRET": "033d557122d9a54f21e97cee023b27777ba62624ddb9f619ed66031f2b614d1f",
+  "JWT_EXPIRES_IN": "15m",
+  "JWT_REFRESH_EXPIRES_IN": "7d",
+  "PORT": "3001",
+  "NODE_ENV": "production",
+  "CORS_ORIGIN": "https://lio-arcade-jpk3-4mvxozjy1-sapumals-projects-93db334b.vercel.app"
+}
