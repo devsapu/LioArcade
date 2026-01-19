@@ -16,13 +16,9 @@ RUN npx prisma generate
 
 # Copy all source files from backend directory
 COPY backend/src ./src
-COPY backend/start.sh ./start.sh
-
-# Make startup script executable
-RUN chmod +x ./start.sh
 
 # Expose port
 EXPOSE 3001
 
-# Start server (runs migrations first)
-CMD ["./start.sh"]
+# Start server
+CMD ["npm", "start"]
