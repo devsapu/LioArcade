@@ -40,6 +40,7 @@ export default function MathGamePage() {
     pointsEarned?: number;
     levelUp?: boolean;
     newLevel?: number;
+    message?: string;
     errorMessage?: string;
   }>({
     isOpen: false,
