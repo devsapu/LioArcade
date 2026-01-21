@@ -9,7 +9,8 @@ interface AuthState {
   refreshToken: string | null;
   isLoading: boolean;
   error: string | null;
-  isAuthenticated: boolean;
+  // Computed getter for isAuthenticated
+  getIsAuthenticated: () => boolean;
   
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<void>;
@@ -24,7 +25,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   refreshToken: null,
   isLoading: false,
   error: null,
-  isAuthenticated: false,
+  // Computed getter - always returns boolean
+  getIsAuthenticated: () => {
+    const state = get();
+    return Boolean(state.accessToken && state.refreshToken);
+  },
 
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
@@ -46,14 +51,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         refreshToken,
         isLoading: false,
         error: null,
-        isAuthenticated: true,
       });
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Login failed. Please try again.';
       set({
         error: errorMessage,
         isLoading: false,
-        isAuthenticated: false,
       });
       throw error;
     }
@@ -80,14 +83,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         refreshToken,
         isLoading: false,
         error: null,
-        isAuthenticated: true,
       });
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Registration failed. Please try again.';
       set({
         error: errorMessage,
         isLoading: false,
-        isAuthenticated: false,
       });
       throw error;
     }
@@ -99,7 +100,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       user: null,
       accessToken: null,
       refreshToken: null,
-      isAuthenticated: false,
     });
   },
 
@@ -124,14 +124,8 @@ AsyncStorage.multiGet(['accessToken', 'refreshToken']).then((values) => {
     useAuthStore.setState({
       accessToken,
       refreshToken,
-      isAuthenticated: Boolean(accessToken && refreshToken), // Ensure boolean
     });
     // Fetch user profile
     useAuthStore.getState().fetchUserProfile();
-  } else {
-    // Ensure isAuthenticated is false if no tokens
-    useAuthStore.setState({
-      isAuthenticated: false,
-    });
   }
 });
