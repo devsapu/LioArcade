@@ -9,7 +9,8 @@ import DashboardScreen from '../screens/DashboardScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
-  const { isAuthenticated } = useAuthStore();
+  // Ensure isAuthenticated is always a boolean
+  const isAuthenticated = useAuthStore((state) => Boolean(state.isAuthenticated));
 
   return (
     <NavigationContainer>

@@ -124,9 +124,14 @@ AsyncStorage.multiGet(['accessToken', 'refreshToken']).then((values) => {
     useAuthStore.setState({
       accessToken,
       refreshToken,
-      isAuthenticated: true,
+      isAuthenticated: Boolean(accessToken && refreshToken), // Ensure boolean
     });
     // Fetch user profile
     useAuthStore.getState().fetchUserProfile();
+  } else {
+    // Ensure isAuthenticated is false if no tokens
+    useAuthStore.setState({
+      isAuthenticated: false,
+    });
   }
 });
