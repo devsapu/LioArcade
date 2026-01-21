@@ -1,12 +1,13 @@
 import React from 'react';
-import { StyleSheet, View, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Alert, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function App() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(false);
+  const insets = useSafeAreaInsets();
 
   // Your website URL
   const websiteUrl = 'https://lioarcade.com';
@@ -46,11 +47,22 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView 
+      style={styles.container} 
+      edges={['top', 'bottom', 'left', 'right']}
+    >
       <StatusBar style="auto" />
       <WebView
         source={{ uri: websiteUrl }}
-        style={styles.webview}
+        style={[
+          styles.webview,
+          {
+            // Ensure WebView respects safe areas
+            paddingTop: Platform.OS === 'ios' ? 0 : insets.top,
+            paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom,
+          }
+        ]}
+        contentInsetAdjustmentBehavior="automatic"
         onLoadStart={handleLoadStart}
         onLoadEnd={handleLoadEnd}
         onError={handleError}
@@ -59,6 +71,9 @@ export default function App() {
         startInLoadingState={true}
         scalesPageToFit={true}
         allowsBackForwardNavigationGestures={true}
+        // Enable safe area insets for WebView content
+        automaticallyAdjustContentInsets={true}
+        contentInset={{ top: 0, bottom: 0, left: 0, right: 0 }}
         // Enable debugging (remove in production)
         // webviewDebuggingEnabled={true}
       />
