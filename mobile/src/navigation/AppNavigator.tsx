@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuthStore } from '../store/authStore';
@@ -9,17 +9,20 @@ import DashboardScreen from '../screens/DashboardScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
-  // Compute isAuthenticated directly from tokens - ensures boolean type
-  const isAuthenticated = useAuthStore((state) => {
-    // Explicitly convert to boolean to avoid type issues
-    const hasTokens = Boolean(state.accessToken && state.refreshToken);
-    return hasTokens;
-  });
+  // Get tokens from store
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const refreshToken = useAuthStore((state) => state.refreshToken);
+  
+  // Compute boolean using useMemo to ensure proper type
+  const isAuthenticated = useMemo(() => {
+    // Explicitly return primitive boolean
+    return !!(accessToken && refreshToken);
+  }, [accessToken, refreshToken]);
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isAuthenticated ? (
+        {isAuthenticated === false ? (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
