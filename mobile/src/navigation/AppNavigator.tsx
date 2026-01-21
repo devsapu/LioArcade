@@ -9,8 +9,12 @@ import DashboardScreen from '../screens/DashboardScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
-  // Use computed getter to ensure isAuthenticated is always a boolean
-  const isAuthenticated = useAuthStore((state) => state.getIsAuthenticated());
+  // Compute isAuthenticated directly from tokens - ensures boolean type
+  const isAuthenticated = useAuthStore((state) => {
+    // Explicitly convert to boolean to avoid type issues
+    const hasTokens = Boolean(state.accessToken && state.refreshToken);
+    return hasTokens;
+  });
 
   return (
     <NavigationContainer>
